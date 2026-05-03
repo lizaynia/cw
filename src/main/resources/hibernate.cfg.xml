@@ -1,0 +1,32 @@
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- Настройки подключения к MySQL -->
+        <property name="connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/airport_db?useSSL=false&amp;serverTimezone=UTC</property>
+        <property name="connection.username">root</property>
+        <!-- ВНИМАНИЕ: Замените пароль ниже на свой пароль от MySQL -->
+        <property name="connection.password">12345678</property>
+
+        <!-- Пул соединений -->
+        <property name="connection.pool_size">10</property>
+
+        <!-- SQL диалект -->
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+
+        <!-- Настройки отладки -->
+        <property name="show_sql">true</property>
+        <property name="format_sql">true</property>
+        <property name="use_sql_comments">false</property>
+
+        <!-- Связь с классами-сущностями -->
+        <mapping class="org.example.common.entity.Role"/>
+        <mapping class="org.example.common.entity.User"/>
+        <mapping class="org.example.common.entity.Airplane"/>
+        <mapping class="org.example.common.entity.Flight"/>
+        <mapping class="org.example.common.entity.Passenger"/>
+        <mapping class="org.example.common.entity.Ticket"/>
+    </session-factory>
+</hibernate-configuration>
