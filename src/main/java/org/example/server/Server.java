@@ -30,7 +30,7 @@ public class Server {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Новое подключение: " + clientSocket.getInetAddress().getHostAddress());
-                
+
                 // Передаем клиента в отдельный поток (ClientHandler)
                 ClientHandler clientThread = new ClientHandler(clientSocket);
                 pool.execute(clientThread);
