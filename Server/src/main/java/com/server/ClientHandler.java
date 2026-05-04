@@ -7,6 +7,7 @@ import com.common.dto.*;
 import com.common.entity.Flight;
 import com.common.entity.Ticket;
 import com.common.entity.User;
+import com.server.dao.PassengerDao;
 import com.server.service.*;
 import com.server.utils.DtoConverter;
 import org.slf4j.Logger;
@@ -40,8 +41,9 @@ public class ClientHandler implements Runnable {
             DispatcherService dispatcherService = new DispatcherService();
             AdminService adminService = new AdminService();
             ClientService clientService = new ClientService();
+            PassengerDao passengerDao = new PassengerDao();
             
-            while (!socket.isClosed()) {
+            try (Session session = HibernateUtil.getSessionFactory().openSession()) {
                 try {
                     Object obj = in.readObject();
                     if (!(obj instanceof Request)) {
@@ -96,12 +98,29 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
                             case BOOK_TICKET: {
-                                Integer passengerId = (Integer) request.getArgs()[0];
-                                Integer flightId = (Integer) request.getArgs()[1];
-                                java.math.BigDecimal price = (java.math.BigDecimal) request.getArgs()[2];
-                                String msg = bookingService.bookTicket(passengerId, flightId, price);
-                                response.setSuccess(msg.startsWith("Успех"));
-                                response.setMessage(msg);
+                                try (Session session = com.server.utils.HibernateUtil.getSessionFactory().openSession()) {
+                                    Integer userId = (Integer) request.getArgs()[0];
+                                    Integer flightId = (Integer) request.getArgs()[1];
+                                    java.math.BigDecimal price;
+                                    
+                                    if (request.getArgs().length > 2) {
+                                        price = (java.math.BigDecimal) request.getArgs()[2];
+                                    } else {
+                                        // Если цена не передана, берем цену рейса из БД
+                                        Flight f = session.get(Flight.class, flightId);
+                                        price = java.math.BigDecimal.valueOf(f != null ? 100.0 : 0.0); // Заглушка, если в Flight нет цены
+                                    }
+
+                                    com.common.entity.Passenger p = passengerDao.findByUserId(session, userId);
+                                    if (p == null) {
+                                        response.setSuccess(false);
+                                        response.setMessage("Ошибка: Профиль пассажира не найден.");
+                                    } else {
+                                        String msg = bookingService.bookTicket(p.getId(), flightId, price);
+                                        response.setSuccess(msg.startsWith("Успех"));
+                                        response.setMessage(msg);
+                                    }
+                                }
                                 break;
                             }
                             case SEARCH_FLIGHTS: {

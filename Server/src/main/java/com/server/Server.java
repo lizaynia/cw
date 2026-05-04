@@ -20,6 +20,7 @@ public class Server {
         try {
             HibernateUtil.getSessionFactory(); // Проверка подключения к БД
             System.out.println("База данных успешно подключена.");
+            com.server.utils.DbInitializer.seedData(); // Авто-наполнение ролей и админа
         } catch (Exception e) {
             System.err.println("Ошибка при подключении к БД. Проверьте hibernate.cfg.xml!");
             e.printStackTrace();

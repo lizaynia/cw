@@ -1,7 +1,9 @@
 package com.server.service;
 
+import com.common.entity.Passenger;
 import com.common.entity.Role;
 import com.common.entity.User;
+import com.server.dao.PassengerDao;
 import com.server.dao.RoleDao;
 import com.server.dao.UserDao;
 import com.server.utils.HashUtil;
@@ -12,6 +14,7 @@ import org.hibernate.Transaction;
 public class AuthService {
     private final UserDao userDao = new UserDao();
     private final RoleDao roleDao = new RoleDao();
+    private final PassengerDao passengerDao = new PassengerDao();
 
     public String register(String login, String password) {
         Transaction transaction = null;
@@ -31,6 +34,14 @@ public class AuthService {
             String hashedPassword = HashUtil.hashPassword(password);
             User user = new User(login, hashedPassword, clientRole);
             userDao.save(session, user);
+
+            // Создаем запись пассажира
+            Passenger passenger = new Passenger();
+            passenger.setFirstName(login); // Временное значение
+            passenger.setLastName("User");
+            passenger.setPassportNumber("P" + System.currentTimeMillis() % 10000000);
+            passenger.setUser(user);
+            passengerDao.save(session, passenger);
 
             transaction.commit();
             return "Успех: Вы успешно зарегистрировались.";

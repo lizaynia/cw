@@ -9,8 +9,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.List;
 
 public class DispatcherMainController extends BaseController {
@@ -53,8 +58,23 @@ public class DispatcherMainController extends BaseController {
 
     @FXML
     private void handleAddFlight() {
-        // В реальном приложении здесь открывалось бы новое окно формы добавления
-        showInfo("Добавление рейса", "Функционал формы добавления в разработке.");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/AddFlight.fxml"));
+            Parent root = loader.load();
+            
+            AddFlightController controller = loader.getController();
+            controller.setOnFlightAdded(this::loadFlights);
+            
+            Stage stage = new Stage();
+            stage.setTitle("Aero System - Добавить рейс");
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(flightsTable.getScene().getWindow());
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Ошибка загрузки", "Не удалось открыть окно добавления рейса: " + e.getMessage());
+        }
     }
 
     @FXML
