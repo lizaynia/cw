@@ -38,7 +38,7 @@ public class DispatcherService {
             Airplane airplane = new Airplane();
             airplane.setModel(model);
             airplane.setCapacity(capacity);
-            airplane.setStatus(Airplane.AirplaneStatus.READY);
+            airplane.setStatus(Airplane.AirplaneStatus.ACTIVE);
 
             airplaneDao.save(session, airplane);
 
@@ -57,7 +57,7 @@ public class DispatcherService {
 
             Airplane airplane = airplaneDao.findById(session, airplaneId);
             if (airplane == null) return "Ошибка: Самолет не найден.";
-            if (airplane.getStatus() != Airplane.AirplaneStatus.READY) {
+            if (airplane.getStatus() != Airplane.AirplaneStatus.ACTIVE) {
                 return "Ошибка: Самолет не готов к вылету (статус: " + airplane.getStatus() + ").";
             }
 

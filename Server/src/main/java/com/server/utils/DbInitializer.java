@@ -27,11 +27,14 @@ public class DbInitializer {
             }
 
             // Проверяем наличие админа
-            if (userDao.findByLogin(session, "admin") == null) {
+            User admin = userDao.findByLogin(session, "admin");
+            if (admin == null) {
                 Role adminRole = roleDao.findByName(session, "ADMIN");
-                User admin = new User("admin", HashUtil.hashPassword("admin123"), adminRole);
+                admin = new User("admin", HashUtil.hashPassword("admin123"), adminRole);
                 session.persist(admin);
-                
+            }
+            if (session.createQuery("from Passenger where user.id = :uid", com.common.entity.Passenger.class)
+                    .setParameter("uid", admin.getId()).uniqueResult() == null) {
                 com.common.entity.Passenger p = new com.common.entity.Passenger();
                 p.setFirstName("Admin");
                 p.setLastName("System");
@@ -41,11 +44,14 @@ public class DbInitializer {
             }
 
             // Проверяем наличие диспетчера
-            if (userDao.findByLogin(session, "dispatcher") == null) {
+            User disp = userDao.findByLogin(session, "dispatcher");
+            if (disp == null) {
                 Role dispRole = roleDao.findByName(session, "DISPATCHER");
-                User disp = new User("dispatcher", HashUtil.hashPassword("disp123"), dispRole);
+                disp = new User("dispatcher", HashUtil.hashPassword("disp123"), dispRole);
                 session.persist(disp);
-
+            }
+            if (session.createQuery("from Passenger where user.id = :uid", com.common.entity.Passenger.class)
+                    .setParameter("uid", disp.getId()).uniqueResult() == null) {
                 com.common.entity.Passenger p = new com.common.entity.Passenger();
                 p.setFirstName("Main");
                 p.setLastName("Dispatcher");
@@ -55,11 +61,14 @@ public class DbInitializer {
             }
 
             // Проверяем наличие клиента
-            if (userDao.findByLogin(session, "client") == null) {
+            User client = userDao.findByLogin(session, "client");
+            if (client == null) {
                 Role clientRole = roleDao.findByName(session, "CLIENT");
-                User client = new User("client", HashUtil.hashPassword("client123"), clientRole);
+                client = new User("client", HashUtil.hashPassword("client123"), clientRole);
                 session.persist(client);
-
+            }
+            if (session.createQuery("from Passenger where user.id = :uid", com.common.entity.Passenger.class)
+                    .setParameter("uid", client.getId()).uniqueResult() == null) {
                 com.common.entity.Passenger p = new com.common.entity.Passenger();
                 p.setFirstName("Test");
                 p.setLastName("Client");
@@ -80,8 +89,15 @@ public class DbInitializer {
 
             // 2. Самолеты
             if (session.createQuery("select count(a) from Airplane a", Long.class).uniqueResult() == 0) {
-                session.persist(new com.common.entity.Airplane("Boeing 737", 180));
-                session.persist(new com.common.entity.Airplane("Airbus A320", 150));
+                com.common.entity.Airplane a1 = new com.common.entity.Airplane();
+                a1.setModel("Boeing 737");
+                a1.setCapacity(180);
+                session.persist(a1);
+
+                com.common.entity.Airplane a2 = new com.common.entity.Airplane();
+                a2.setModel("Airbus A320");
+                a2.setCapacity(150);
+                session.persist(a2);
             }
 
             // 3. Рейсы

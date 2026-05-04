@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class Airplane implements Serializable {
     
     public enum AirplaneStatus {
-        READY, REPAIR, IN_SERVICE
+        ACTIVE, MAINTENANCE, DECOMMISSIONED
     }
 
     @Id
@@ -24,7 +24,8 @@ public class Airplane implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AirplaneStatus status = AirplaneStatus.READY;
+    private AirplaneStatus status = AirplaneStatus.ACTIVE;
+
 
     public Airplane() {}
 

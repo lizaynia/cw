@@ -16,7 +16,7 @@ public class AuthService {
     private final RoleDao roleDao = new RoleDao();
     private final PassengerDao passengerDao = new PassengerDao();
 
-    public String register(String login, String password) {
+    public String register(String login, String password, String firstName, String lastName, String passportNum) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
@@ -37,9 +37,9 @@ public class AuthService {
 
             // Создаем запись пассажира
             Passenger passenger = new Passenger();
-            passenger.setFirstName(login); // Временное значение
-            passenger.setLastName("User");
-            passenger.setPassportNumber("P" + System.currentTimeMillis() % 10000000);
+            passenger.setFirstName(firstName);
+            passenger.setLastName(lastName);
+            passenger.setPassportNumber(passportNum);
             passenger.setUser(user);
             passengerDao.save(session, passenger);
 
@@ -48,9 +48,10 @@ public class AuthService {
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
             e.printStackTrace();
-            return "Ошибка сервера при регистрации.";
+            return "Ошибка сервера при регистрации: " + e.getMessage();
         }
     }
+
 
     public User login(String login, String password) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {

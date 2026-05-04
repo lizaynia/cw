@@ -72,27 +72,7 @@ public class LoginController extends BaseController {
 
     @FXML
     private void handleRegister() {
-        String login = loginField.getText();
-        String password = passwordField.getText();
-
-        if (!ValidationUtil.isNotEmpty(login, password)) {
-            errorLabel.setStyle("-fx-text-fill: #ff4444;");
-            errorLabel.setText("Заполните все поля для регистрации!");
-            return;
-        }
-
-        if (!ValidationUtil.isValidPassword(password)) {
-            errorLabel.setStyle("-fx-text-fill: #ff4444;");
-            errorLabel.setText("Пароль должен быть не менее 4 символов");
-            return;
-        }
-
-        Request request = new Request(CommandType.REGISTER.name(), login, password);
-        
-        executeTask(request, response -> {
-            showInfo("Успех", "Регистрация успешна! Теперь вы можете войти.");
-            errorLabel.setStyle("-fx-text-fill: #00ff00;");
-            errorLabel.setText("Регистрация успешна! Теперь войдите.");
-        });
+        Stage stage = (Stage) loginField.getScene().getWindow();
+        switchScene("/views/Register.fxml", "Aero System - Регистрация", stage);
     }
 }

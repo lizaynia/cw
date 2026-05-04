@@ -10,6 +10,8 @@ import com.common.entity.User;
 import com.server.dao.PassengerDao;
 import com.server.service.*;
 import com.server.utils.DtoConverter;
+import com.server.utils.HibernateUtil;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,7 @@ public class ClientHandler implements Runnable {
             ClientService clientService = new ClientService();
             PassengerDao passengerDao = new PassengerDao();
             
-            try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            while (!socket.isClosed()) {
                 try {
                     Object obj = in.readObject();
                     if (!(obj instanceof Request)) {
@@ -72,7 +74,10 @@ public class ClientHandler implements Runnable {
                             case REGISTER: {
                                 String login = (String) request.getArgs()[0];
                                 String password = (String) request.getArgs()[1];
-                                String msg = authService.register(login, password);
+                                String firstName = (String) request.getArgs()[2];
+                                String lastName = (String) request.getArgs()[3];
+                                String passport = (String) request.getArgs()[4];
+                                String msg = authService.register(login, password, firstName, lastName, passport);
                                 response.setSuccess(msg.startsWith("Успех"));
                                 response.setMessage(msg);
                                 break;
