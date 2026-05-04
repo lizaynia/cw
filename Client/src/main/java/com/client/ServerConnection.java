@@ -20,6 +20,10 @@ public class ServerConnection {
     private static final int PORT = 8888;
 
     private ServerConnection() {
+        connect();
+    }
+
+    private void connect() {
         try {
             socket = new Socket(HOST, PORT);
             out = new ObjectOutputStream(socket.getOutputStream());
@@ -38,13 +42,22 @@ public class ServerConnection {
     }
 
     public Response sendRequest(Request request) {
-        try {
-            out.writeObject(request);
-            out.flush();
-            return (Response) in.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            return new Response(false, "Ошибка сетевого обмена: " + e.getMessage());
+        int attempts = 3;
+        while (attempts > 0) {
+            try {
+                if (socket == null || socket.isClosed()) {
+                    connect();
+                }
+                out.writeObject(request);
+                out.flush();
+                return (Response) in.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                attempts--;
+                System.err.println("Ошибка сетевого обмена, попытка переподключения... (осталось " + attempts + ")");
+                connect();
+            }
         }
+        return new Response(false, "Не удалось связаться с сервером после нескольких попыток.");
     }
 
     public UserDto getCurrentUser() {
@@ -57,7 +70,10 @@ public class ServerConnection {
 
     public void close() {
         try {
+            if (out != null) out.close();
+            if (in != null) in.close();
             if (socket != null) socket.close();
+            System.out.println("Соединение с сервером закрыто.");
         } catch (IOException e) {
             e.printStackTrace();
         }

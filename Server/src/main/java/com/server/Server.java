@@ -27,6 +27,15 @@ public class Server {
         }
 
         logger.info("Запуск сервера на порту {}...", PORT);
+
+        // Graceful shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Выключение сервера...");
+            pool.shutdown();
+            HibernateUtil.shutdown();
+            logger.info("Сервер успешно остановлен.");
+        }));
+
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             logger.info("Сервер запущен и ожидает подключений.");
 

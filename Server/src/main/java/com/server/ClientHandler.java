@@ -30,12 +30,10 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            // Важно: сначала создаем ObjectOutputStream, затем ObjectInputStream,
-            // чтобы избежать взаимной блокировки потоков (deadlock)
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
 
-            System.out.println("Поток для клиента запущен.");
+            logger.info("Клиент подключен: {}", socket.getInetAddress().getHostAddress());
             
             BookingService bookingService = new BookingService();
             AuthService authService = new AuthService();
@@ -43,17 +41,32 @@ public class ClientHandler implements Runnable {
             AdminService adminService = new AdminService();
             ClientService clientService = new ClientService();
             
-            while (true) {
-                Object obj = in.readObject();
-                if (obj instanceof Request) {
+            while (!socket.isClosed()) {
+                try {
+                    Object obj = in.readObject();
+                    if (!(obj instanceof Request)) {
+                        logger.warn("Получен объект неверного типа: {}", obj != null ? obj.getClass().getName() : "null");
+                        continue;
+                    }
+                    
                     Request request = (Request) obj;
-                    System.out.println("Получен запрос от клиента: " + request.getCommand());
+                    logger.info("Запрос: {}", request.getCommand());
                     
                     Response response = new Response();
                     
                     try {
-                        switch (CommandType.valueOf(request.getCommand())) {
-                            // --- АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ ---
+                        CommandType command;
+                        try {
+                            command = CommandType.valueOf(request.getCommand());
+                        } catch (IllegalArgumentException e) {
+                            response.setSuccess(false);
+                            response.setMessage("Неизвестная команда: " + request.getCommand());
+                            out.writeObject(response);
+                            out.flush();
+                            continue;
+                        }
+
+                        switch (command) {
                             case REGISTER: {
                                 String login = (String) request.getArgs()[0];
                                 String password = (String) request.getArgs()[1];
@@ -76,12 +89,9 @@ public class ClientHandler implements Runnable {
                                 }
                                 break;
                             }
-
-                            // --- КЛИЕНТ (И НЕАВТОРИЗОВАННЫЙ) ---
                             case GET_SCHEDULE: {
                                 java.util.List<Flight> flights = dispatcherService.getSchedule();
                                 response.setSuccess(true);
-                                // В реальности тут нужно считать билеты для каждого рейса для DTO
                                 response.setData(flights); 
                                 break;
                             }
@@ -89,7 +99,6 @@ public class ClientHandler implements Runnable {
                                 Integer passengerId = (Integer) request.getArgs()[0];
                                 Integer flightId = (Integer) request.getArgs()[1];
                                 java.math.BigDecimal price = (java.math.BigDecimal) request.getArgs()[2];
-                                
                                 String msg = bookingService.bookTicket(passengerId, flightId, price);
                                 response.setSuccess(msg.startsWith("Успех"));
                                 response.setMessage(msg);
@@ -100,30 +109,17 @@ public class ClientHandler implements Runnable {
                                 String arr = (String) request.getArgs()[1];
                                 java.time.LocalDate date = (java.time.LocalDate) request.getArgs()[2];
                                 java.util.List<Flight> flights = clientService.searchFlights(dep, arr, date);
-                                
-                                // Конвертируем в DTO (для примера считаем bookedTickets = 0 или нужно запрашивать в БД)
-                                java.util.List<FlightDto> dtos = flights.stream()
-                                    .map(f -> DtoConverter.toDto(f, 0)) 
-                                    .collect(java.util.stream.Collectors.toList());
-                                
                                 response.setSuccess(true);
-                                response.setData(dtos);
+                                response.setData(flights);
                                 break;
                             }
                             case GET_TICKET_HISTORY: {
                                 Integer passengerId = (Integer) request.getArgs()[0];
                                 java.util.List<Ticket> history = clientService.getTicketHistory(passengerId);
-                                
-                                java.util.List<TicketDto> dtos = history.stream()
-                                    .map(DtoConverter::toDto)
-                                    .collect(java.util.stream.Collectors.toList());
-                                
                                 response.setSuccess(true);
-                                response.setData(dtos);
+                                response.setData(history);
                                 break;
                             }
-
-                            // --- ДИСПЕТЧЕР ---
                             case ADD_AIRPLANE: {
                                 String model = (String) request.getArgs()[0];
                                 Integer capacity = (Integer) request.getArgs()[1];
@@ -133,9 +129,8 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
                             case GET_AIRPLANES: {
-                                java.util.List<com.common.entity.Airplane> airplanes = dispatcherService.getAirplanes();
                                 response.setSuccess(true);
-                                response.setData(airplanes);
+                                response.setData(dispatcherService.getAirplanes());
                                 break;
                             }
                             case ADD_FLIGHT: {
@@ -144,7 +139,6 @@ public class ClientHandler implements Runnable {
                                 String arrCity = (String) request.getArgs()[2];
                                 java.time.LocalDateTime time = (java.time.LocalDateTime) request.getArgs()[3];
                                 Integer airplaneId = (Integer) request.getArgs()[4];
-                                
                                 String msg = dispatcherService.addFlight(flightNum, depCity, arrCity, time, airplaneId);
                                 response.setSuccess(msg.startsWith("Успех"));
                                 response.setMessage(msg);
@@ -157,12 +151,9 @@ public class ClientHandler implements Runnable {
                                 response.setMessage(msg);
                                 break;
                             }
-
-                            // --- АДМИНИСТРАТОР ---
                             case GET_USERS: {
-                                java.util.List<User> users = adminService.getAllUsers();
                                 response.setSuccess(true);
-                                response.setData(users);
+                                response.setData(adminService.getAllUsers());
                                 break;
                             }
                             case CHANGE_ROLE: {
@@ -182,28 +173,30 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
                             case GET_STATISTICS: {
-                                java.util.Map<String, Long> stats = adminService.getStatistics();
                                 response.setSuccess(true);
-                                response.setData(stats);
+                                response.setData(adminService.getStatistics());
                                 break;
                             }
-                                
                             default:
                                 response.setSuccess(false);
-                                response.setMessage("Неизвестная команда.");
+                                response.setMessage("Команда " + command + " еще не реализована");
                                 break;
                         }
                     } catch (Exception e) {
+                        logger.error("Ошибка бизнес-логики: ", e);
                         response.setSuccess(false);
-                        response.setMessage("Ошибка обработки запроса: " + e.getMessage());
+                        response.setMessage("Ошибка на сервере: " + e.getMessage());
                     }
                     
                     out.writeObject(response);
                     out.flush();
+                } catch (IOException | ClassNotFoundException e) {
+                    logger.info("Клиент отключился.");
+                    break;
                 }
             }
-        } catch (Exception e) {
-            System.out.println("Клиент отключился: " + socket.getInetAddress().getHostAddress());
+        } catch (IOException e) {
+            logger.error("Ошибка ClientHandler: ", e);
         } finally {
             closeConnections();
         }
@@ -215,7 +208,7 @@ public class ClientHandler implements Runnable {
             if (out != null) out.close();
             if (socket != null) socket.close();
         } catch (IOException e) {
-            System.err.println("Ошибка при закрытии сокетов: " + e.getMessage());
+            logger.error("Ошибка при закрытии сокетов: ", e);
         }
     }
 }

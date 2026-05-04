@@ -11,8 +11,13 @@ public class FlightDto implements Serializable {
     private LocalDateTime departureTime;
     private String airplaneModel;
     private Integer availableSeats;
+    private Double basePrice;
 
     public FlightDto() {}
+
+    public String getRoute() {
+        return departureCity + " -> " + arrivalCity;
+    }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -28,4 +33,6 @@ public class FlightDto implements Serializable {
     public void setAirplaneModel(String airplaneModel) { this.airplaneModel = airplaneModel; }
     public Integer getAvailableSeats() { return availableSeats; }
     public void setAvailableSeats(Integer availableSeats) { this.availableSeats = availableSeats; }
+    public Double getBasePrice() { return basePrice; }
+    public void setBasePrice(Double basePrice) { this.basePrice = basePrice; }
 }

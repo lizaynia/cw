@@ -5,18 +5,14 @@ import com.common.CommandType;
 import com.common.Request;
 import com.common.Response;
 import com.common.dto.UserDto;
+import com.common.utils.ValidationUtil;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
-public class LoginController {
+public class LoginController extends BaseController {
 
     @FXML
     private TextField loginField;
@@ -32,23 +28,25 @@ public class LoginController {
         String login = loginField.getText();
         String password = passwordField.getText();
 
-        if (login.isEmpty() || password.isEmpty()) {
+        if (!ValidationUtil.isNotEmpty(login, password)) {
             errorLabel.setText("Заполните все поля!");
             return;
         }
 
-        Request request = new Request(CommandType.LOGIN.name(), login, password);
-        Response response = ServerConnection.getInstance().sendRequest(request);
+        if (!ValidationUtil.isValidLogin(login)) {
+            errorLabel.setText("Логин должен быть от 3 до 20 символов");
+            return;
+        }
 
-        if (response.isSuccess()) {
+        Request request = new Request(CommandType.LOGIN.name(), login, password);
+        
+        executeTask(request, response -> {
             UserDto user = (UserDto) response.getData();
             ServerConnection.getInstance().setCurrentUser(user);
             System.out.println("Успешный вход: " + user.getLogin() + " (" + user.getRoleName() + ")");
             
             switchToMainView(user.getRoleName());
-        } else {
-            errorLabel.setText(response.getMessage());
-        }
+        });
     }
 
     private void switchToMainView(String roleName) {
@@ -64,21 +62,12 @@ public class LoginController {
                 fxmlFile = "/views/ClientMain.fxml";
                 break;
             default:
-                errorLabel.setText("Неизвестная роль: " + roleName);
+                showError("Ошибка", "Неизвестная роль: " + roleName);
                 return;
         }
 
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-            Parent root = loader.load();
-            Stage stage = (Stage) loginField.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Airport System - " + roleName);
-            stage.show();
-        } catch (IOException e) {
-            e.printStackTrace();
-            errorLabel.setText("Ошибка загрузки интерфейса: " + e.getMessage());
-        }
+        Stage stage = (Stage) loginField.getScene().getWindow();
+        switchScene(fxmlFile, roleName, stage);
     }
 
     @FXML
@@ -86,21 +75,24 @@ public class LoginController {
         String login = loginField.getText();
         String password = passwordField.getText();
 
-        if (login.isEmpty() || password.isEmpty()) {
+        if (!ValidationUtil.isNotEmpty(login, password)) {
             errorLabel.setStyle("-fx-text-fill: #ff4444;");
             errorLabel.setText("Заполните все поля для регистрации!");
             return;
         }
 
-        Request request = new Request(CommandType.REGISTER.name(), login, password);
-        Response response = ServerConnection.getInstance().sendRequest(request);
+        if (!ValidationUtil.isValidPassword(password)) {
+            errorLabel.setStyle("-fx-text-fill: #ff4444;");
+            errorLabel.setText("Пароль должен быть не менее 4 символов");
+            return;
+        }
 
-        if (response.isSuccess()) {
+        Request request = new Request(CommandType.REGISTER.name(), login, password);
+        
+        executeTask(request, response -> {
+            showInfo("Успех", "Регистрация успешна! Теперь вы можете войти.");
             errorLabel.setStyle("-fx-text-fill: #00ff00;");
             errorLabel.setText("Регистрация успешна! Теперь войдите.");
-        } else {
-            errorLabel.setStyle("-fx-text-fill: #ff4444;");
-            errorLabel.setText(response.getMessage());
-        }
+        });
     }
 }

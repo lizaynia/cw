@@ -3,21 +3,21 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.controller.ClientMainController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
     <Label text="Каталог рейсов" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
     <TableView fx:id="catalogTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Рейс" prefWidth="80"/>
-            <TableColumn text="Маршрут" prefWidth="200"/>
-            <TableColumn text="Цена" prefWidth="100"/>
+            <TableColumn fx:id="numberColumn" text="Рейс" prefWidth="80"/>
+            <TableColumn fx:id="routeColumn" text="Маршрут" prefWidth="200"/>
+            <TableColumn fx:id="priceColumn" text="Цена" prefWidth="100"/>
         </columns>
     </TableView>
     <HBox spacing="10" alignment="CENTER">
-        <Button text="Купить билет"/>
-        <Button text="История"/>
-        <Button text="Выйти"/>
+        <Button text="Купить билет" onAction="#handleBuyTicket"/>
+        <Button text="История" onAction="#handleShowHistory"/>
+        <Button text="Выйти" onAction="#handleLogout"/>
     </HBox>
 </VBox>
