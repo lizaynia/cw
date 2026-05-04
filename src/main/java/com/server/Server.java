@@ -1,6 +1,6 @@
-package org.example.server;
+package com.server;
 
-import org.example.server.utils.HibernateUtil;
+import com.server.utils.HibernateUtil;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

@@ -22,11 +22,11 @@
         <property name="use_sql_comments">false</property>
 
         <!-- Связь с классами-сущностями -->
-        <mapping class="org.example.common.entity.Role"/>
-        <mapping class="org.example.common.entity.User"/>
-        <mapping class="org.example.common.entity.Airplane"/>
-        <mapping class="org.example.common.entity.Flight"/>
-        <mapping class="org.example.common.entity.Passenger"/>
-        <mapping class="org.example.common.entity.Ticket"/>
+        <mapping class="com.common.entity.Role"/>
+        <mapping class="com.common.entity.User"/>
+        <mapping class="com.common.entity.Airplane"/>
+        <mapping class="com.common.entity.Flight"/>
+        <mapping class="com.common.entity.Passenger"/>
+        <mapping class="com.common.entity.Ticket"/>
     </session-factory>
 </hibernate-configuration>

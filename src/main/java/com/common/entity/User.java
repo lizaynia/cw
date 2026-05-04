@@ -1,4 +1,4 @@
-package org.example.common.entity;
+package com.common.entity;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
