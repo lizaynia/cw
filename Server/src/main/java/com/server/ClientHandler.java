@@ -92,7 +92,7 @@ public class ClientHandler implements Runnable {
                             case GET_SCHEDULE: {
                                 java.util.List<Flight> flights = dispatcherService.getSchedule();
                                 response.setSuccess(true);
-                                response.setData(flights); 
+                                response.setData(DtoConverter.toFlightDtoList(flights)); 
                                 break;
                             }
                             case BOOK_TICKET: {
@@ -110,14 +110,14 @@ public class ClientHandler implements Runnable {
                                 java.time.LocalDate date = (java.time.LocalDate) request.getArgs()[2];
                                 java.util.List<Flight> flights = clientService.searchFlights(dep, arr, date);
                                 response.setSuccess(true);
-                                response.setData(flights);
+                                response.setData(DtoConverter.toFlightDtoList(flights));
                                 break;
                             }
                             case GET_TICKET_HISTORY: {
                                 Integer passengerId = (Integer) request.getArgs()[0];
                                 java.util.List<Ticket> history = clientService.getTicketHistory(passengerId);
                                 response.setSuccess(true);
-                                response.setData(history);
+                                response.setData(DtoConverter.toTicketDtoList(history));
                                 break;
                             }
                             case ADD_AIRPLANE: {
@@ -153,7 +153,7 @@ public class ClientHandler implements Runnable {
                             }
                             case GET_USERS: {
                                 response.setSuccess(true);
-                                response.setData(adminService.getAllUsers());
+                                response.setData(DtoConverter.toUserDtoList(adminService.getAllUsers()));
                                 break;
                             }
                             case CHANGE_ROLE: {
