@@ -43,6 +43,7 @@ public class AdminService {
             if (transaction != null) transaction.rollback();
             return "Ошибка смены роли: " + e.getMessage();
         }
+    }
     public String toggleUserBlock(Integer userId, boolean block) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
