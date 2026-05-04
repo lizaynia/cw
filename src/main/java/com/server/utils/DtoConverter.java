@@ -14,7 +14,7 @@ public class DtoConverter {
 
     public static UserDto toDto(User user) {
         if (user == null) return null;
-        return new UserDto(user.getId(), user.getLogin(), user.getRole().getName());
+        return new UserDto(user.getId(), user.getLogin(), user.getRole().getRoleName());
     }
 
     public static FlightDto toDto(Flight flight, long bookedTickets) {

@@ -2,7 +2,7 @@ package com.client;
 
 import com.common.Request;
 import com.common.Response;
-import com.common.entity.User;
+import com.common.dto.UserDto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,7 +14,7 @@ public class ServerConnection {
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
-    private User currentUser;
+    private UserDto currentUser;
 
     private static final String HOST = "localhost";
     private static final int PORT = 8888;
@@ -47,11 +47,11 @@ public class ServerConnection {
         }
     }
 
-    public User getCurrentUser() {
+    public UserDto getCurrentUser() {
         return currentUser;
     }
 
-    public void setCurrentUser(User currentUser) {
+    public void setCurrentUser(UserDto currentUser) {
         this.currentUser = currentUser;
     }
 

@@ -6,7 +6,7 @@ import com.common.entity.Ticket;
 import com.server.dao.FlightDao;
 import com.server.dao.PassengerDao;
 import com.server.dao.TicketDao;
-import org.example.server.utils.HibernateUtil;
+import com.server.utils.HibernateUtil;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 

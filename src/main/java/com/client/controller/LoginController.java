@@ -4,7 +4,7 @@ import com.client.ServerConnection;
 import com.common.CommandType;
 import com.common.Request;
 import com.common.Response;
-import com.common.entity.User;
+import com.common.dto.UserDto;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -35,9 +35,9 @@ public class LoginController {
         Response response = ServerConnection.getInstance().sendRequest(request);
 
         if (response.isSuccess()) {
-            User user = (User) response.getData();
+            UserDto user = (UserDto) response.getData();
             ServerConnection.getInstance().setCurrentUser(user);
-            System.out.println("Успешный вход: " + user.getLogin() + " (" + user.getRole().getName() + ")");
+            System.out.println("Успешный вход: " + user.getLogin() + " (" + user.getRoleName() + ")");
             // Здесь будет переход на главное окно в зависимости от роли
         } else {
             errorLabel.setText(response.getMessage());
@@ -50,6 +50,7 @@ public class LoginController {
         String password = passwordField.getText();
 
         if (login.isEmpty() || password.isEmpty()) {
+            errorLabel.setStyle("-fx-text-fill: #ff4444;");
             errorLabel.setText("Заполните все поля для регистрации!");
             return;
         }
