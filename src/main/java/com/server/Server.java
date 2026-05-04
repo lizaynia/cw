@@ -1,6 +1,8 @@
 package com.server;
 
 import com.server.utils.HibernateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,7 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Server {
-    private static final int PORT = 8080;
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
+    private static final int PORT = 8888;
     // Пул на 10 потоков для одновременной обработки клиентов
     private static final ExecutorService pool = Executors.newFixedThreadPool(10);
 
@@ -23,13 +26,13 @@ public class Server {
             return; // Останавливаем запуск сервера, если БД не доступна
         }
 
-        System.out.println("Запуск сервера на порту " + PORT + "...");
+        logger.info("Запуск сервера на порту {}...", PORT);
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("Сервер запущен и ожидает подключений.");
+            logger.info("Сервер запущен и ожидает подключений.");
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                System.out.println("Новое подключение: " + clientSocket.getInetAddress().getHostAddress());
+                logger.info("Новое подключение: {}", clientSocket.getInetAddress().getHostAddress());
 
                 // Передаем клиента в отдельный поток (ClientHandler)
                 ClientHandler clientThread = new ClientHandler(clientSocket);

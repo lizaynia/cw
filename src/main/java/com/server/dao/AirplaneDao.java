@@ -10,6 +10,14 @@ public class AirplaneDao {
         session.persist(airplane);
     }
 
+    public void update(Session session, Airplane airplane) {
+        session.merge(airplane);
+    }
+
+    public void delete(Session session, Airplane airplane) {
+        session.remove(airplane);
+    }
+
     public Airplane findById(Session session, Integer id) {
         return session.get(Airplane.class, id);
     }

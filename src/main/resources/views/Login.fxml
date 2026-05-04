@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.client.controller.LoginController"
+      styleClass="main-container" stylesheets="@../css/style.css">
+    
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+    </padding>
+
+    <Label text="AERO SYSTEM" textFill="WHITE">
+        <font>
+            <Font name="System Bold" size="28.0" />
+        </font>
+    </Label>
+
+    <VBox spacing="10.0">
+        <Label text="Логин" textFill="#b2b2b2" />
+        <TextField fx:id="loginField" promptText="Введите логин" styleClass="input-field" />
+    </VBox>
+
+    <VBox spacing="10.0">
+        <Label text="Пароль" textFill="#b2b2b2" />
+        <PasswordField fx:id="passwordField" promptText="Введите пароль" styleClass="input-field" />
+    </VBox>
+
+    <Button onAction="#handleLogin" prefWidth="200.0" text="Войти" styleClass="login-button" />
+    
+    <Hyperlink onAction="#handleRegister" text="Нет аккаунта? Зарегистрироваться" textFill="#00a8ff" />
+
+    <Label fx:id="errorLabel" textFill="#ff4444" />
+</VBox>

@@ -2,9 +2,15 @@ package com.server;
 
 import com.common.Request;
 import com.common.Response;
+import com.common.CommandType;
+import com.common.dto.*;
 import com.common.entity.Flight;
 import com.common.entity.Ticket;
 import com.common.entity.User;
+import com.server.service.*;
+import com.server.utils.DtoConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,6 +18,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     private final Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
@@ -30,11 +37,11 @@ public class ClientHandler implements Runnable {
 
             System.out.println("Поток для клиента запущен.");
             
-            org.example.server.service.BookingService bookingService = new org.example.server.service.BookingService();
-            org.example.server.service.AuthService authService = new org.example.server.service.AuthService();
-            org.example.server.service.DispatcherService dispatcherService = new org.example.server.service.DispatcherService();
-            org.example.server.service.AdminService adminService = new org.example.server.service.AdminService();
-            org.example.server.service.ClientService clientService = new org.example.server.service.ClientService();
+            BookingService bookingService = new BookingService();
+            AuthService authService = new AuthService();
+            DispatcherService dispatcherService = new DispatcherService();
+            AdminService adminService = new AdminService();
+            ClientService clientService = new ClientService();
             
             while (true) {
                 Object obj = in.readObject();
@@ -47,7 +54,7 @@ public class ClientHandler implements Runnable {
                     try {
                         switch (CommandType.valueOf(request.getCommand())) {
                             // --- АВТОРИЗАЦИЯ И РЕГИСТРАЦИЯ ---
-                            case "REGISTER": {
+                            case REGISTER: {
                                 String login = (String) request.getArgs()[0];
                                 String password = (String) request.getArgs()[1];
                                 String msg = authService.register(login, password);
@@ -55,14 +62,14 @@ public class ClientHandler implements Runnable {
                                 response.setMessage(msg);
                                 break;
                             }
-                            case "LOGIN": {
+                            case LOGIN: {
                                 String login = (String) request.getArgs()[0];
                                 String password = (String) request.getArgs()[1];
                                 User user = authService.login(login, password);
                                 if (user != null) {
                                     response.setSuccess(true);
                                     response.setMessage("Успешный вход");
-                                    response.setData(user);
+                                    response.setData(DtoConverter.toDto(user));
                                 } else {
                                     response.setSuccess(false);
                                     response.setMessage("Неверный логин или пароль");
@@ -71,13 +78,14 @@ public class ClientHandler implements Runnable {
                             }
 
                             // --- КЛИЕНТ (И НЕАВТОРИЗОВАННЫЙ) ---
-                            case "GET_SCHEDULE": {
+                            case GET_SCHEDULE: {
                                 java.util.List<Flight> flights = dispatcherService.getSchedule();
                                 response.setSuccess(true);
-                                response.setData(flights);
+                                // В реальности тут нужно считать билеты для каждого рейса для DTO
+                                response.setData(flights); 
                                 break;
                             }
-                            case "BOOK_TICKET": {
+                            case BOOK_TICKET: {
                                 Integer passengerId = (Integer) request.getArgs()[0];
                                 Integer flightId = (Integer) request.getArgs()[1];
                                 java.math.BigDecimal price = (java.math.BigDecimal) request.getArgs()[2];
@@ -87,16 +95,36 @@ public class ClientHandler implements Runnable {
                                 response.setMessage(msg);
                                 break;
                             }
-                            case "GET_TICKET_HISTORY": {
+                            case SEARCH_FLIGHTS: {
+                                String dep = (String) request.getArgs()[0];
+                                String arr = (String) request.getArgs()[1];
+                                java.time.LocalDate date = (java.time.LocalDate) request.getArgs()[2];
+                                java.util.List<Flight> flights = clientService.searchFlights(dep, arr, date);
+                                
+                                // Конвертируем в DTO (для примера считаем bookedTickets = 0 или нужно запрашивать в БД)
+                                java.util.List<FlightDto> dtos = flights.stream()
+                                    .map(f -> DtoConverter.toDto(f, 0)) 
+                                    .collect(java.util.stream.Collectors.toList());
+                                
+                                response.setSuccess(true);
+                                response.setData(dtos);
+                                break;
+                            }
+                            case GET_TICKET_HISTORY: {
                                 Integer passengerId = (Integer) request.getArgs()[0];
                                 java.util.List<Ticket> history = clientService.getTicketHistory(passengerId);
+                                
+                                java.util.List<TicketDto> dtos = history.stream()
+                                    .map(DtoConverter::toDto)
+                                    .collect(java.util.stream.Collectors.toList());
+                                
                                 response.setSuccess(true);
-                                response.setData(history);
+                                response.setData(dtos);
                                 break;
                             }
 
                             // --- ДИСПЕТЧЕР ---
-                            case "ADD_AIRPLANE": {
+                            case ADD_AIRPLANE: {
                                 String model = (String) request.getArgs()[0];
                                 Integer capacity = (Integer) request.getArgs()[1];
                                 String msg = dispatcherService.addAirplane(model, capacity);
@@ -104,7 +132,13 @@ public class ClientHandler implements Runnable {
                                 response.setMessage(msg);
                                 break;
                             }
-                            case "ADD_FLIGHT": {
+                            case GET_AIRPLANES: {
+                                java.util.List<com.common.entity.Airplane> airplanes = dispatcherService.getAirplanes();
+                                response.setSuccess(true);
+                                response.setData(airplanes);
+                                break;
+                            }
+                            case ADD_FLIGHT: {
                                 String flightNum = (String) request.getArgs()[0];
                                 String depCity = (String) request.getArgs()[1];
                                 String arrCity = (String) request.getArgs()[2];
@@ -116,20 +150,41 @@ public class ClientHandler implements Runnable {
                                 response.setMessage(msg);
                                 break;
                             }
+                            case DELETE_FLIGHT: {
+                                Integer flightId = (Integer) request.getArgs()[0];
+                                String msg = dispatcherService.deleteFlight(flightId);
+                                response.setSuccess(msg.startsWith("Успех"));
+                                response.setMessage(msg);
+                                break;
+                            }
 
                             // --- АДМИНИСТРАТОР ---
-                            case "GET_USERS": {
+                            case GET_USERS: {
                                 java.util.List<User> users = adminService.getAllUsers();
                                 response.setSuccess(true);
                                 response.setData(users);
                                 break;
                             }
-                            case "CHANGE_ROLE": {
+                            case CHANGE_ROLE: {
                                 Integer userId = (Integer) request.getArgs()[0];
                                 String roleName = (String) request.getArgs()[1];
                                 String msg = adminService.changeUserRole(userId, roleName);
                                 response.setSuccess(msg.startsWith("Успех"));
                                 response.setMessage(msg);
+                                break;
+                            }
+                            case UPDATE_AIRPLANE_STATUS: {
+                                Integer id = (Integer) request.getArgs()[0];
+                                com.common.entity.Airplane.AirplaneStatus status = (com.common.entity.Airplane.AirplaneStatus) request.getArgs()[1];
+                                String msg = adminService.updateAirplaneStatus(id, status);
+                                response.setSuccess(msg.startsWith("Успех"));
+                                response.setMessage(msg);
+                                break;
+                            }
+                            case GET_STATISTICS: {
+                                java.util.Map<String, Long> stats = adminService.getStatistics();
+                                response.setSuccess(true);
+                                response.setData(stats);
                                 break;
                             }
                                 

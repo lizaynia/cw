@@ -15,4 +15,10 @@ public class ClientService {
             return ticketDao.findAllByPassengerId(session, passengerId);
         }
     }
+
+    public List<com.common.entity.Flight> searchFlights(String dep, String arr, java.time.LocalDate date) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return new com.server.dao.FlightDao().search(session, dep, arr, date);
+        }
+    }
 }
