@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" styleClass="main-container" stylesheets="@../css/style.css" 
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.client.controller.TicketHistoryController"
+      prefWidth="700" prefHeight="450">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20" />
+    </padding>
+
+    <Label text="Мои билеты" styleClass="title-label" />
+
+    <TableView fx:id="historyTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <columns>
+            <TableColumn fx:id="flightColumn" text="Рейс" prefWidth="100" />
+            <TableColumn fx:id="routeColumn" text="Маршрут" prefWidth="250" />
+            <TableColumn fx:id="seatColumn" text="Место" prefWidth="80" />
+            <TableColumn fx:id="priceColumn" text="Цена" prefWidth="100" />
+            <TableColumn fx:id="statusColumn" text="Статус" prefWidth="100" />
+        </columns>
+    </TableView>
+
+    <HBox alignment="CENTER_RIGHT" spacing="10">
+        <Button onAction="#handleClose" text="Закрыть" styleClass="button-secondary" />
+    </HBox>
+</VBox>

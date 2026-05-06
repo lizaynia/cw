@@ -3,21 +3,42 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.controller.ClientMainController">
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.controller.ClientMainController" styleClass="main-container" stylesheets="@../css/style.css">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
-    <Label text="Каталог рейсов" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
-    <TableView fx:id="catalogTable" VBox.vgrow="ALWAYS">
+
+    <Label text="Поиск и бронирование рейсов" styleClass="title-label"/>
+
+    <HBox spacing="10" alignment="CENTER" styleClass="panel">
+        <VBox spacing="5">
+            <Label text="Откуда" styleClass="secondary-label"/>
+            <TextField promptText="Город отправления" styleClass="input-field"/>
+        </VBox>
+        <VBox spacing="5">
+            <Label text="Куда" styleClass="secondary-label"/>
+            <TextField promptText="Город прибытия" styleClass="input-field"/>
+        </VBox>
+        <VBox spacing="5">
+            <Label text="Дата" styleClass="secondary-label"/>
+            <DatePicker promptText="Выберите дату" styleClass="input-field"/>
+        </VBox>
+        <VBox spacing="5" alignment="BOTTOM_CENTER">
+            <Button text="Найти" styleClass="button-primary"/>
+        </VBox>
+    </HBox>
+
+    <TableView fx:id="catalogTable" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>
             <TableColumn fx:id="numberColumn" text="Рейс" prefWidth="80"/>
-            <TableColumn fx:id="routeColumn" text="Маршрут" prefWidth="200"/>
+            <TableColumn fx:id="routeColumn" text="Маршрут" prefWidth="300"/>
             <TableColumn fx:id="priceColumn" text="Цена" prefWidth="100"/>
         </columns>
     </TableView>
-    <HBox spacing="10" alignment="CENTER">
-        <Button text="Купить билет" onAction="#handleBuyTicket"/>
-        <Button text="История" onAction="#handleShowHistory"/>
-        <Button text="Выйти" onAction="#handleLogout"/>
+
+    <HBox spacing="15" alignment="CENTER">
+        <Button text="Купить билет" onAction="#handleBuyTicket" styleClass="button-primary"/>
+        <Button text="История" onAction="#handleShowHistory" styleClass="button-secondary"/>
+        <Button text="Выйти" onAction="#handleLogout" styleClass="button-secondary"/>
     </HBox>
 </VBox>

@@ -1,34 +1,101 @@
 .main-container {
-    -fx-background-color: linear-gradient(to bottom right, #1a1a2e, #16213e);
+    -fx-background-color: #f0f4f8;
+    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.panel {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);
+    -fx-padding: 20;
+}
+
+.title-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+}
+
+.secondary-label {
+    -fx-text-fill: #666666;
+    -fx-font-size: 14px;
 }
 
 .input-field {
-    -fx-background-color: #0f3460;
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: #533483;
+    -fx-background-color: #f8f9fa;
+    -fx-text-fill: #333333;
+    -fx-prompt-text-fill: #a0a0a0;
+    -fx-border-color: #e0e0e0;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
     -fx-background-radius: 5;
-    -fx-padding: 10;
+    -fx-padding: 8;
 }
 
 .input-field:focused {
-    -fx-border-color: #e94560;
-    -fx-border-width: 1;
-    -fx-border-radius: 5;
+    -fx-border-color: #d63384;
+    -fx-background-color: #ffffff;
 }
 
-.login-button {
-    -fx-background-color: #e94560;
+.button-primary {
+    -fx-background-color: #d63384;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 5;
-    -fx-padding: 12 24;
+    -fx-padding: 10 20;
     -fx-cursor: hand;
 }
 
-.login-button:hover {
-    -fx-background-color: #ff2e63;
+.button-primary:hover {
+    -fx-background-color: #c12a75;
 }
 
-.label {
-    -fx-font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+.button-secondary {
+    -fx-background-color: #e0e0e0;
+    -fx-text-fill: #333333;
+    -fx-font-weight: bold;
+    -fx-background-radius: 5;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.button-secondary:hover {
+    -fx-background-color: #d0d0d0;
+}
+
+.link {
+    -fx-text-fill: #d63384;
+    -fx-cursor: hand;
+}
+
+.error-label {
+    -fx-text-fill: #e63946;
+}
+
+/* Table styling for minimal look */
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: transparent transparent #e0e0e0 transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #666666;
+    -fx-font-weight: bold;
+}
+
+.table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #f0f0f0 transparent;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #fdf0f5;
+    -fx-text-fill: #d63384;
 }

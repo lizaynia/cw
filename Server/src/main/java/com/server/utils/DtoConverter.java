@@ -35,12 +35,14 @@ public class DtoConverter {
         TicketDto dto = new TicketDto();
         dto.setId(ticket.getId());
         dto.setFlightNumber(ticket.getFlight().getFlightNumber());
+        dto.setRoute(ticket.getFlight().getDepartureCity().getCityName() + " -> " + ticket.getFlight().getArrivalCity().getCityName());
         dto.setPassengerName(ticket.getPassenger().getFirstName() + " " + ticket.getPassenger().getLastName());
         dto.setSeatNumber(ticket.getSeatNumber());
         dto.setPrice(ticket.getPrice());
         dto.setStatus(ticket.getStatus().name());
         return dto;
     }
+
 
     public static List<UserDto> toUserDtoList(List<User> users) {
         if (users == null) return null;

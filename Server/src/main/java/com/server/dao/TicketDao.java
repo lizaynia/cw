@@ -21,4 +21,11 @@ public class TicketDao extends BaseDao<Ticket> {
                 .setParameter("passengerId", passengerId)
                 .list();
     }
+    public boolean isSeatTaken(Session session, Integer flightId, String seatNumber) {
+        Long count = session.createQuery("select count(t) from Ticket t where t.flight.id = :flightId and t.seatNumber = :seatNumber", Long.class)
+                .setParameter("flightId", flightId)
+                .setParameter("seatNumber", seatNumber)
+                .uniqueResult();
+        return count != null && count > 0;
+    }
 }

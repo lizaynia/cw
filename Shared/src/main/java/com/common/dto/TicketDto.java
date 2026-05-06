@@ -11,14 +11,19 @@ public class TicketDto implements Serializable {
     private BigDecimal price;
     private String status;
 
+    private String route;
+
     public TicketDto() {}
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public String getFlightNumber() { return flightNumber; }
     public void setFlightNumber(String flightNumber) { this.flightNumber = flightNumber; }
+    public String getRoute() { return route; }
+    public void setRoute(String route) { this.route = route; }
     public String getPassengerName() { return passengerName; }
     public void setPassengerName(String passengerName) { this.passengerName = passengerName; }
+
     public String getSeatNumber() { return seatNumber; }
     public void setSeatNumber(String seatNumber) { this.seatNumber = seatNumber; }
     public BigDecimal getPrice() { return price; }

@@ -106,14 +106,15 @@ public class ClientHandler implements Runnable {
                                 try (Session session = com.server.utils.HibernateUtil.getSessionFactory().openSession()) {
                                     Integer userId = (Integer) request.getArgs()[0];
                                     Integer flightId = (Integer) request.getArgs()[1];
+                                    String seatNumber = (String) request.getArgs()[2];
                                     java.math.BigDecimal price;
                                     
-                                    if (request.getArgs().length > 2) {
-                                        price = (java.math.BigDecimal) request.getArgs()[2];
+                                    if (request.getArgs().length > 3) {
+                                        price = (java.math.BigDecimal) request.getArgs()[3];
                                     } else {
                                         // Если цена не передана, берем цену рейса из БД
                                         Flight f = session.get(Flight.class, flightId);
-                                        price = java.math.BigDecimal.valueOf(f != null ? 100.0 : 0.0); // Заглушка, если в Flight нет цены
+                                        price = java.math.BigDecimal.valueOf(f != null ? 100.0 : 0.0); // Заглушка
                                     }
 
                                     com.common.entity.Passenger p = passengerDao.findByUserId(session, userId);
@@ -121,10 +122,11 @@ public class ClientHandler implements Runnable {
                                         response.setSuccess(false);
                                         response.setMessage("Ошибка: Профиль пассажира не найден.");
                                     } else {
-                                        String msg = bookingService.bookTicket(p.getId(), flightId, price);
+                                        String msg = bookingService.bookTicket(p.getId(), flightId, price, seatNumber);
                                         response.setSuccess(msg.startsWith("Успех"));
                                         response.setMessage(msg);
                                     }
+
                                 }
                                 break;
                             }
@@ -138,10 +140,18 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
                             case GET_TICKET_HISTORY: {
-                                Integer passengerId = (Integer) request.getArgs()[0];
-                                java.util.List<Ticket> history = clientService.getTicketHistory(passengerId);
-                                response.setSuccess(true);
-                                response.setData(DtoConverter.toTicketDtoList(history));
+                                try (Session session = com.server.utils.HibernateUtil.getSessionFactory().openSession()) {
+                                    Integer userId = (Integer) request.getArgs()[0];
+                                    com.common.entity.Passenger p = passengerDao.findByUserId(session, userId);
+                                    if (p == null) {
+                                        response.setSuccess(false);
+                                        response.setMessage("Ошибка: Профиль пассажира не найден.");
+                                    } else {
+                                        java.util.List<Ticket> history = clientService.getTicketHistory(p.getId());
+                                        response.setSuccess(true);
+                                        response.setData(DtoConverter.toTicketDtoList(history));
+                                    }
+                                }
                                 break;
                             }
                             case ADD_AIRPLANE: {

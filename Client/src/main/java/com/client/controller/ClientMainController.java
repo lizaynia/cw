@@ -10,9 +10,16 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.TextInputDialog;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public class ClientMainController extends BaseController {
 
@@ -57,18 +64,47 @@ public class ClientMainController extends BaseController {
             return;
         }
 
-        if (showConfirmation("Покупка билета", "Вы уверены, что хотите купить билет на рейс " + selected.getFlightNumber() + "?")) {
-            Request request = new Request(CommandType.BOOK_TICKET.name(), selected.getId(), ServerConnection.getInstance().getCurrentUser().getId());
+        TextInputDialog dialog = new TextInputDialog("A1");
+        dialog.setTitle("Выбор места");
+        dialog.setHeaderText("Рейс: " + selected.getFlightNumber());
+        dialog.setContentText("Введите номер места (например, A1, B10):");
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            String seat = result.get().trim();
+            if (seat.isEmpty()) {
+                showError("Ошибка", "Номер места не может быть пустым.");
+                return;
+            }
+
+            Request request = new Request(CommandType.BOOK_TICKET.name(), 
+                    ServerConnection.getInstance().getCurrentUser().getId(), 
+                    selected.getId(), 
+                    seat);
+                    
             executeTask(request, response -> {
-                showInfo("Успех", "Билет успешно куплен!");
-                loadFlights(); // Обновить данные (например, кол-во мест)
+                showInfo("Успех", "Билет на место " + seat + " успешно куплен!");
+                loadFlights();
             });
         }
     }
 
     @FXML
     private void handleShowHistory() {
-        showInfo("История", "Функционал просмотра истории билетов в разработке.");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/TicketHistory.fxml"));
+            Parent root = loader.load();
+            
+            Stage stage = new Stage();
+            stage.setTitle("История билетов");
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(catalogTable.getScene().getWindow());
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Ошибка", "Не удалось открыть историю: " + e.getMessage());
+        }
     }
 
     @FXML
