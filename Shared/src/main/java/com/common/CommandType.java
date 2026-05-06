@@ -21,5 +21,9 @@ public enum CommandType {
     GET_USERS,
     CHANGE_ROLE,
     UPDATE_AIRPLANE_STATUS,
-    GET_STATISTICS
+    GET_STATISTICS,
+    
+    // --- НОВЫЕ КОМАНДЫ ДЛЯ UI ---
+    GET_OCCUPIED_SEATS,
+    UPDATE_PROFILE
 }

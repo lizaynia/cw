@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="main-container" stylesheets="@../css/style.css" 
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.client.controller.UserProfileController"
+      prefWidth="800" prefHeight="600">
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20" />
+    </padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <Label text="Личный кабинет" styleClass="title-label" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button onAction="#handleBack" text="На главную" styleClass="button-secondary" />
+    </HBox>
+
+    <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: white; -fx-background-radius: 8;">
+        <tabs>
+            <Tab text="Мои билеты">
+                <VBox spacing="15">
+                    <padding><Insets bottom="15" left="15" right="15" top="15" /></padding>
+                    <Label text="Активные и предстоящие рейсы" styleClass="secondary-label" />
+                    <TableView fx:id="activeTicketsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                        <columns>
+                            <TableColumn fx:id="activeFlightColumn" text="Рейс" />
+                            <TableColumn fx:id="activeRouteColumn" text="Маршрут" />
+                            <TableColumn fx:id="activeSeatColumn" text="Место" />
+                            <TableColumn fx:id="activeStatusColumn" text="Статус" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+            
+            <Tab text="История поездок">
+                <VBox spacing="15">
+                    <padding><Insets bottom="15" left="15" right="15" top="15" /></padding>
+                    <Label text="История завершенных и отмененных билетов" styleClass="secondary-label" />
+                    <TableView fx:id="historyTicketsTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+                        <columns>
+                            <TableColumn fx:id="histFlightColumn" text="Рейс" />
+                            <TableColumn fx:id="histRouteColumn" text="Маршрут" />
+                            <TableColumn fx:id="histDateColumn" text="Дата" />
+                            <TableColumn fx:id="histStatusColumn" text="Статус" />
+                        </columns>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="Профиль">
+                <VBox spacing="25" alignment="TOP_CENTER">
+                    <padding><Insets bottom="30" left="100" right="100" top="30" /></padding>
+                    
+                    <VBox spacing="10" styleClass="panel" alignment="CENTER_LEFT">
+                        <Label text="Личные данные" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
+                        <GridPane hgap="10" vgap="15">
+                            <Label text="Логин:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="secondary-label" />
+                            <TextField fx:id="loginField" editable="false" styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                            
+                            <Label text="ФИО:" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="secondary-label" />
+                            <TextField fx:id="nameField" styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                            
+                            <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="secondary-label" />
+                            <TextField fx:id="emailField" styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        </GridPane>
+                        <Button onAction="#handleUpdateProfile" text="Сохранить изменения" styleClass="button-primary" />
+                    </VBox>
+
+                    <VBox spacing="10" styleClass="panel" alignment="CENTER_LEFT">
+                        <Label text="Безопасность" style="-fx-font-weight: bold; -fx-font-size: 16px;" />
+                        <PasswordField fx:id="newPasswordField" promptText="Новый пароль" styleClass="input-field" />
+                        <PasswordField fx:id="confirmPasswordField" promptText="Подтвердите пароль" styleClass="input-field" />
+                        <Button onAction="#handleChangePassword" text="Сменить пароль" styleClass="button-secondary" />
+                    </VBox>
+                </VBox>
+            </Tab>
+        </tabs>
+    </TabPane>
+</VBox>

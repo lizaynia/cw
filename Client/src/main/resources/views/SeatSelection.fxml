@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="main-container" stylesheets="@../css/style.css" 
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.client.controller.SeatSelectionController"
+      prefWidth="600" prefHeight="700">
+    <padding>
+        <Insets bottom="30" left="30" right="30" top="30" />
+    </padding>
+
+    <VBox spacing="5">
+        <Label text="Выбор места" styleClass="title-label" />
+        <Label fx:id="flightInfoLabel" text="Рейс: XY123 | Маршрут: Минск -> Москва" styleClass="secondary-label" />
+    </VBox>
+
+    <VBox alignment="CENTER" spacing="10" VBox.vgrow="ALWAYS" styleClass="panel">
+        <Label text="Носовая часть" style="-fx-text-fill: #aaa; -fx-font-size: 10px;" />
+        
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+            <GridPane fx:id="seatGrid" alignment="CENTER" hgap="10" vgap="10">
+                <!-- Seats will be added dynamically here -->
+            </GridPane>
+        </ScrollPane>
+        
+        <Label text="Хвостовая часть" style="-fx-text-fill: #aaa; -fx-font-size: 10px;" />
+    </VBox>
+
+    <HBox spacing="20" alignment="CENTER" styleClass="panel">
+        <HBox spacing="5" alignment="CENTER">
+            <Region styleClass="legend-box, seat-free" />
+            <Label text="Свободно" styleClass="secondary-label" />
+        </HBox>
+        <HBox spacing="5" alignment="CENTER">
+            <Region styleClass="legend-box, seat-occupied" />
+            <Label text="Занято" styleClass="secondary-label" />
+        </HBox>
+        <HBox spacing="5" alignment="CENTER">
+            <Region styleClass="legend-box, seat-selected" />
+            <Label text="Выбрано" styleClass="secondary-label" />
+        </HBox>
+    </HBox>
+
+    <HBox spacing="15" alignment="CENTER_RIGHT">
+        <Label fx:id="selectedSeatLabel" text="Место не выбрано" styleClass="secondary-label" />
+        <Button fx:id="bookButton" onAction="#handleProceedToPayment" text="К оплате" styleClass="button-primary" disable="true" />
+        <Button onAction="#handleCancel" text="Отмена" styleClass="button-secondary" />
+    </HBox>
+</VBox>

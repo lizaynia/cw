@@ -99,3 +99,55 @@
     -fx-background-color: #fdf0f5;
     -fx-text-fill: #d63384;
 }
+
+.table-row-cell:hover {
+    -fx-background-color: #f5f5f5;
+}
+
+/* Ensure text in table cells remains dark on hover/selection unless specified */
+.table-row-cell:hover .table-cell,
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: inherit;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #d63384;
+}
+
+/* Seat Selection Styles */
+.seat {
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-border-color: #e0e0e0;
+    -fx-alignment: center;
+    -fx-cursor: hand;
+}
+
+.seat-free {
+    -fx-background-color: #ffffff;
+}
+
+.seat-free:hover {
+    -fx-background-color: #fdf0f5;
+    -fx-border-color: #d63384;
+}
+
+.seat-occupied {
+    -fx-background-color: #e0e0e0;
+    -fx-opacity: 0.5;
+    -fx-cursor: default;
+}
+
+.seat-selected {
+    -fx-background-color: #d63384;
+    -fx-text-fill: white;
+    -fx-border-color: #c12a75;
+}
+
+.legend-box {
+    -fx-min-width: 20;
+    -fx-min-height: 20;
+    -fx-background-radius: 3;
+}
