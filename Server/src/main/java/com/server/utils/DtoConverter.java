@@ -49,8 +49,15 @@ public class DtoConverter {
 
     public static UserDto toDto(User user) {
         if (user == null) return null;
-        return new UserDto(user.getId(), user.getLogin(), user.getRole().getRoleName());
+        UserDto dto = new UserDto(user.getId(), user.getLogin(), user.getRole().getRoleName());
+        dto.setBlocked(user.isBlocked());
 
+        if (user.getPassenger() != null) {
+            dto.setFullName(user.getPassenger().getFirstName() + " " + user.getPassenger().getLastName());
+            dto.setPassportNumber(user.getPassenger().getPassportNumber());
+        }
+
+        return dto;
     }
 
     public static List<UserDto> toUserDtoList(List<User> users) {

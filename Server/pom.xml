@@ -12,18 +12,25 @@
     <artifactId>Server</artifactId>
 
     <dependencies>
+        <!-- ВНУТРЕННИЙ МОДУЛЬ -->
         <dependency>
             <groupId>by.bsuir.airport</groupId>
             <artifactId>Shared</artifactId>
         </dependency>
+
+        <!-- ДРАЙВЕР MYSQL -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
+
+        <!-- HIBERNATE (ТОЛЬКО НА СЕРВЕРЕ) -->
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
         </dependency>
+
+        <!-- ЛОГИРОВАНИЕ -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

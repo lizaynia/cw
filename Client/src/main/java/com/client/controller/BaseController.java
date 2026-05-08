@@ -131,7 +131,7 @@ public abstract class BaseController {
             stage.centerOnScreen();
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка загрузки окна: " + fxmlPath + " - " + e.getMessage());
             showError("Ошибка загрузки окна: " + fxmlPath, e.getMessage());
         }
     }

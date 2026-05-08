@@ -7,19 +7,17 @@ import com.common.dto.FlightDto;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public class ClientMainController extends BaseController {
 
@@ -35,16 +33,30 @@ public class ClientMainController extends BaseController {
     @FXML
     private TableColumn<FlightDto, Double> priceColumn;
 
+    // ✅ ДОБАВЛЕНЫ ПОЛЯ ДЛЯ ПОИСКА
+    @FXML
+    private TextField fromField;
+
+    @FXML
+    private TextField toField;
+
+    @FXML
+    private DatePicker datePicker;
+
     private ObservableList<FlightDto> flightsList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
         numberColumn.setCellValueFactory(new PropertyValueFactory<>("flightNumber"));
-        // В FlightDto может быть геттер getRoute() или комбинированный
-        routeColumn.setCellValueFactory(new PropertyValueFactory<>("route")); 
+        routeColumn.setCellValueFactory(new PropertyValueFactory<>("route"));
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("basePrice"));
 
         catalogTable.setItems(flightsList);
+
+        // Устанавливаем дату по умолчанию - сегодня
+        datePicker.setValue(LocalDate.now());
+
+        // Загружаем все рейсы при старте
         loadFlights();
     }
 
@@ -53,6 +65,35 @@ public class ClientMainController extends BaseController {
         executeTask(request, response -> {
             List<FlightDto> flights = (List<FlightDto>) response.getData();
             flightsList.setAll(flights);
+        });
+    }
+
+    // ✅ НОВЫЙ МЕТОД ДЛЯ ПОИСКА
+    @FXML
+    private void handleSearch() {
+        String from = fromField.getText();
+        String to = toField.getText();
+        LocalDate date = datePicker.getValue();
+
+        if ((from == null || from.trim().isEmpty()) &&
+                (to == null || to.trim().isEmpty()) &&
+                date == null) {
+            // Если все поля пустые - показываем все рейсы
+            loadFlights();
+            return;
+        }
+
+        Request request = new Request(CommandType.SEARCH_FLIGHTS.name(),
+                from != null ? from.trim() : "",
+                to != null ? to.trim() : "",
+                date != null ? date : LocalDate.now());
+
+        executeTask(request, response -> {
+            List<FlightDto> flights = (List<FlightDto>) response.getData();
+            flightsList.setAll(flights);
+            if (flights.isEmpty()) {
+                showInfo("Результаты поиска", "Рейсы не найдены");
+            }
         });
     }
 
@@ -87,7 +128,7 @@ public class ClientMainController extends BaseController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/TicketHistory.fxml"));
             Parent root = loader.load();
-            
+
             Stage stage = new Stage();
             stage.setTitle("История билетов");
             stage.initModality(Modality.WINDOW_MODAL);
@@ -95,7 +136,7 @@ public class ClientMainController extends BaseController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка открытия истории: " + e.getMessage());
             showError("Ошибка", "Не удалось открыть историю: " + e.getMessage());
         }
     }
@@ -113,7 +154,7 @@ public class ClientMainController extends BaseController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка открытия профиля: " + e.getMessage());
             showError("Ошибка", "Не удалось открыть личный кабинет: " + e.getMessage());
         }
     }

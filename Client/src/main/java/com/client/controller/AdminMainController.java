@@ -6,12 +6,12 @@ import com.common.dto.UserDto;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.Optional;
 
 public class AdminMainController extends BaseController {
 
@@ -19,7 +19,7 @@ public class AdminMainController extends BaseController {
     private TableView<UserDto> usersTable;
 
     @FXML
-    private TableColumn<UserDto, Long> idColumn;
+    private TableColumn<UserDto, Integer> idColumn;
 
     @FXML
     private TableColumn<UserDto, String> loginColumn;
@@ -28,7 +28,7 @@ public class AdminMainController extends BaseController {
     private TableColumn<UserDto, String> roleColumn;
 
     @FXML
-    private TableColumn<UserDto, String> statusColumn;
+    private TableColumn<UserDto, Boolean> statusColumn;
 
     private ObservableList<UserDto> usersList = FXCollections.observableArrayList();
 
@@ -37,7 +37,7 @@ public class AdminMainController extends BaseController {
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         loginColumn.setCellValueFactory(new PropertyValueFactory<>("login"));
         roleColumn.setCellValueFactory(new PropertyValueFactory<>("roleName"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("isBlocked"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("blocked"));
 
         usersTable.setItems(usersList);
         loadUsers();
@@ -64,7 +64,25 @@ public class AdminMainController extends BaseController {
             showError("Ошибка", "Выберите пользователя");
             return;
         }
-        // Открыть диалог выбора роли
+
+        // Создаем диалог выбора роли
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(selected.getRoleName(), "CLIENT", "DISPATCHER", "ADMIN");
+        dialog.setTitle("Смена роли");
+        dialog.setHeaderText("Смена роли для пользователя: " + selected.getLogin());
+        dialog.setContentText("Выберите новую роль:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(newRole -> {
+            if (newRole.equals(selected.getRoleName())) {
+                return;
+            }
+
+            Request request = new Request(CommandType.CHANGE_ROLE.name(), selected.getId(), newRole);
+            executeTask(request, response -> {
+                showInfo("Успех", "Роль пользователя " + selected.getLogin() + " изменена на " + newRole);
+                loadUsers();
+            });
+        });
     }
 
     @FXML
@@ -74,7 +92,16 @@ public class AdminMainController extends BaseController {
             showError("Ошибка", "Выберите пользователя");
             return;
         }
-        // Отправить запрос на блокировку
-    }
 
+        String action = selected.isBlocked() ? "разблокировать" : "заблокировать";
+
+        if (showConfirmation("Подтверждение", "Вы уверены, что хотите " + action + " пользователя " + selected.getLogin() + "?")) {
+            boolean block = !selected.isBlocked();
+            Request request = new Request(CommandType.BLOCK_USER.name(), selected.getId(), block);
+            executeTask(request, response -> {
+                showInfo("Успех", "Пользователь " + selected.getLogin() + (block ? " заблокирован" : " разблокирован"));
+                loadUsers();
+            });
+        }
+    }
 }

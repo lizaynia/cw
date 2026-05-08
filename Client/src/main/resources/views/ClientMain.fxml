@@ -13,18 +13,18 @@
     <HBox spacing="10" alignment="CENTER" styleClass="panel">
         <VBox spacing="5">
             <Label text="Откуда" styleClass="secondary-label"/>
-            <TextField promptText="Город отправления" styleClass="input-field"/>
+            <TextField fx:id="fromField" promptText="Город отправления" styleClass="input-field"/>
         </VBox>
         <VBox spacing="5">
             <Label text="Куда" styleClass="secondary-label"/>
-            <TextField promptText="Город прибытия" styleClass="input-field"/>
+            <TextField fx:id="toField" promptText="Город прибытия" styleClass="input-field"/>
         </VBox>
         <VBox spacing="5">
             <Label text="Дата" styleClass="secondary-label"/>
-            <DatePicker promptText="Выберите дату" styleClass="input-field"/>
+            <DatePicker fx:id="datePicker" promptText="Выберите дату" styleClass="input-field"/>
         </VBox>
         <VBox spacing="5" alignment="BOTTOM_CENTER">
-            <Button text="Найти" styleClass="button-primary"/>
+            <Button onAction="#handleSearch" text="Найти" styleClass="button-primary"/>
         </VBox>
     </HBox>
 

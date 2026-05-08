@@ -30,8 +30,8 @@ public class UserProfileController extends BaseController {
     @FXML private TableColumn<TicketDto, String> histStatusColumn;
 
     @FXML private TextField loginField;
-    @FXML private TextField nameField;
-    @FXML private TextField emailField;
+    @FXML private Label fullNameLabel;        // ✅ Изменено с TextField на Label
+    @FXML private Label passportLabel;        // ✅ Новое поле
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
 
@@ -50,8 +50,8 @@ public class UserProfileController extends BaseController {
         loadTickets();
     }
 
-    private void setupTable(TableView<TicketDto> table, TableColumn<TicketDto, String> flight, 
-                            TableColumn<TicketDto, String> route, TableColumn<TicketDto, String> seat, 
+    private void setupTable(TableView<TicketDto> table, TableColumn<TicketDto, String> flight,
+                            TableColumn<TicketDto, String> route, TableColumn<TicketDto, String> seat,
                             TableColumn<TicketDto, String> status) {
         flight.setCellValueFactory(new PropertyValueFactory<>("flightNumber"));
         route.setCellValueFactory(new PropertyValueFactory<>("route"));
@@ -63,48 +63,47 @@ public class UserProfileController extends BaseController {
         UserDto user = ServerConnection.getInstance().getCurrentUser();
         if (user != null) {
             loginField.setText(user.getLogin());
-            // Дополнительные данные можно получить отдельным запросом, если они не в UserDto
+            fullNameLabel.setText(user.getFullName() != null ? user.getFullName() : "Не указано");
+            passportLabel.setText(user.getPassportNumber() != null ? user.getPassportNumber() : "Не указан");
         }
     }
 
     private void loadTickets() {
-        Request request = new Request(CommandType.GET_TICKET_HISTORY.name(), 
+        Request request = new Request(CommandType.GET_TICKET_HISTORY.name(),
                 ServerConnection.getInstance().getCurrentUser().getId());
-        
+
         executeTask(request, response -> {
             List<TicketDto> allTickets = (List<TicketDto>) response.getData();
-            
-            // Фильтруем активные и прошлые (упрощенно по статусу)
-            activeList.setAll(allTickets.stream()
-                .filter(t -> "PAID".equalsIgnoreCase(t.getStatus()) || "BOOKED".equalsIgnoreCase(t.getStatus()))
-                .collect(Collectors.toList()));
-                
-            historyList.setAll(allTickets.stream()
-                .filter(t -> "COMPLETED".equalsIgnoreCase(t.getStatus()) || "CANCELLED".equalsIgnoreCase(t.getStatus()))
-                .collect(Collectors.toList()));
-        });
-    }
 
-    @FXML
-    private void handleUpdateProfile() {
-        // Логика обновления ФИО и Email
-        showInfo("Профиль", "Данные профиля обновлены (заглушка)");
+            activeList.setAll(allTickets.stream()
+                    .filter(t -> "PAID".equalsIgnoreCase(t.getStatus()) || "BOOKED".equalsIgnoreCase(t.getStatus()))
+                    .collect(Collectors.toList()));
+
+            historyList.setAll(allTickets.stream()
+                    .filter(t -> "COMPLETED".equalsIgnoreCase(t.getStatus()) || "CANCELLED".equalsIgnoreCase(t.getStatus()))
+                    .collect(Collectors.toList()));
+        });
     }
 
     @FXML
     private void handleChangePassword() {
         String pass = newPasswordField.getText();
         String confirm = confirmPasswordField.getText();
-        
+
         if (pass.isEmpty() || !pass.equals(confirm)) {
             showError("Ошибка", "Пароли не совпадают или пусты.");
             return;
         }
 
-        Request request = new Request(CommandType.UPDATE_PROFILE.name(), 
-                ServerConnection.getInstance().getCurrentUser().getId(), 
+        if (pass.length() < 4) {
+            showError("Ошибка", "Пароль должен быть не менее 4 символов");
+            return;
+        }
+
+        Request request = new Request(CommandType.UPDATE_PROFILE.name(),
+                ServerConnection.getInstance().getCurrentUser().getId(),
                 pass);
-                
+
         executeTask(request, response -> {
             showInfo("Успех", "Пароль успешно изменен.");
             newPasswordField.clear();

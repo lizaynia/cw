@@ -20,7 +20,8 @@ public class ClientApp extends Application {
             primaryStage.setResizable(false);
             primaryStage.show();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Ошибка запуска приложения: " + e.getMessage());
+            e.printStackTrace(System.err);  // Можно оставить для отладки, но лучше убрать
         }
     }
 

@@ -12,9 +12,7 @@
     <artifactId>Shared</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-        </dependency>
+        <!-- ТОЛЬКО JPA АННОТАЦИИ ДЛЯ ENTITY (БЕЗ HIBERNATE) -->
+        <!-- Аннотации jakarta.persistence не требуют рантайм зависимости -->
     </dependencies>
 </project>

@@ -14,15 +14,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class DispatcherMainController extends BaseController {
-
-    private static final Logger logger = LoggerFactory.getLogger(DispatcherMainController.class);
 
     @FXML
     private TableView<FlightDto> flightsTable;
@@ -39,7 +36,7 @@ public class DispatcherMainController extends BaseController {
     @FXML
     private TableColumn<FlightDto, String> timeColumn;
 
-    private ObservableList<FlightDto> flightsList = FXCollections.observableArrayList();
+    private final ObservableList<FlightDto> flightsList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -75,11 +72,12 @@ public class DispatcherMainController extends BaseController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            logger.error("Ошибка открытия окна редактирования", e);
+            System.err.println("Ошибка открытия окна редактирования: " + e.getMessage());
             showError("Ошибка", "Не удалось открыть окно редактирования: " + e.getMessage());
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void loadFlights() {
         Request request = new Request(CommandType.GET_SCHEDULE.name());
         executeTask(request, response -> {
@@ -104,7 +102,7 @@ public class DispatcherMainController extends BaseController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            logger.error("Ошибка загрузки окна добавления рейса", e);
+            System.err.println("Ошибка загрузки окна добавления рейса: " + e.getMessage());
             showError("Ошибка загрузки", "Не удалось открыть окно добавления рейса: " + e.getMessage());
         }
     }
@@ -119,7 +117,7 @@ public class DispatcherMainController extends BaseController {
 
         if (showConfirmation("Удаление рейса", "Вы уверены, что хотите удалить рейс " + selected.getFlightNumber() + "?")) {
             Request request = new Request(CommandType.DELETE_FLIGHT.name(), selected.getId());
-            executeTask(request, response -> {
+            executeTask(request, _ -> {
                 showInfo("Успех", "Рейс удален.");
                 loadFlights();
             });

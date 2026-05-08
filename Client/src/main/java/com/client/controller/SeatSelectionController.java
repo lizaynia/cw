@@ -122,7 +122,7 @@ public class SeatSelectionController extends BaseController {
             Stage stage = (Stage) seatGrid.getScene().getWindow();
             stage.setScene(new Scene(root));
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Ошибка загрузки экрана оплаты: " + e.getMessage());
             showError("Ошибка", "Не удалось загрузить экран оплаты.");
         }
     }

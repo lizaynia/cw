@@ -9,15 +9,16 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-
-
     <artifactId>Client</artifactId>
 
     <dependencies>
+        <!-- ВНУТРЕННИЙ МОДУЛЬ (DTO + ENTITY + УТИЛИТЫ) -->
         <dependency>
             <groupId>by.bsuir.airport</groupId>
             <artifactId>Shared</artifactId>
         </dependency>
+
+        <!-- JAVA FX -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -26,6 +27,8 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
         </dependency>
+
+        <!-- PDF ГЕНЕРАЦИЯ (ДЛЯ ЭКСПОРТА БИЛЕТОВ) -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>
