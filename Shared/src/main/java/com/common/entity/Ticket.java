@@ -3,6 +3,7 @@ package com.common.entity;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tickets")
@@ -31,6 +32,9 @@ public class Ticket implements Serializable {
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "booking_time")
+    private LocalDateTime bookingTime;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private TicketStatus status = TicketStatus.BOOKED;
@@ -54,4 +58,6 @@ public class Ticket implements Serializable {
     
     public TicketStatus getStatus() { return status; }
     public void setStatus(TicketStatus status) { this.status = status; }
+
+
 }

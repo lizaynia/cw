@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS flights (
     arrival_city_id   INT       NOT NULL,
     departure_time DATETIME     NOT NULL,
     airplane_id    INT          NOT NULL,
+    base_price DECIMAL(10,2) NOT NULL DEFAULT 100.00;
     PRIMARY KEY (id_flight),
     CONSTRAINT fk_flights_dep_city  FOREIGN KEY (departure_city_id) REFERENCES cities (id_city),
     CONSTRAINT fk_flights_arr_city  FOREIGN KEY (arrival_city_id)   REFERENCES cities (id_city),

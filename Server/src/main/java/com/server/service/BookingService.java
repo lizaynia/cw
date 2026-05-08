@@ -12,6 +12,7 @@ import org.hibernate.Transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class BookingService {
 
@@ -26,11 +27,8 @@ public class BookingService {
      * @param price Цена (устанавливается клиентом или системой)
      * @return Сообщение об успешности операции
      */
-    public String bookTicket(Integer passengerId, Integer flightId, BigDecimal price, String seatNumber) {
-        Transaction transaction = null;
-
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            transaction = session.beginTransaction(); // Начало транзакции
+    public String bookTicket(Session session, Integer passengerId, Integer flightId, String seatNumber) {
+        try {
 
             Passenger passenger = passengerDao.findById(session, passengerId);
             if (passenger == null) return "Ошибка: Пассажир не найден.";
@@ -38,46 +36,51 @@ public class BookingService {
             Flight flight = flightDao.findById(session, flightId);
             if (flight == null) return "Ошибка: Рейс не найден.";
 
-            // Валидация
-            if (price.compareTo(BigDecimal.ZERO) < 0) {
-                return "Ошибка: Некорректная цена билета.";
-            }
             if (flight.getDepartureTime().isBefore(LocalDateTime.now())) {
                 return "Ошибка: Рейс уже вылетел.";
             }
 
-            // Проверка, не занято ли место
             if (ticketDao.isSeatTaken(session, flightId, seatNumber)) {
                 return "Ошибка: Место " + seatNumber + " уже занято.";
             }
 
-            // Проверка свободных мест (вместимость самолета минус проданные билеты)
             long bookedTickets = ticketDao.countTicketsForFlight(session, flightId);
             Integer capacity = flight.getAirplane().getCapacity();
             if (bookedTickets >= capacity) {
                 return "Ошибка: Нет свободных мест на рейсе.";
             }
 
-            // Создаем билет
             Ticket ticket = new Ticket();
             ticket.setPassenger(passenger);
             ticket.setFlight(flight);
-            ticket.setPrice(price);
-            ticket.setSeatNumber(seatNumber); 
+            ticket.setPrice(flight.getBasePrice());
+            ticket.setSeatNumber(seatNumber);
             ticket.setStatus(Ticket.TicketStatus.PAID);
 
             ticketDao.save(session, ticket);
 
-            transaction.commit(); // Сохраняем изменения в БД
+
+
             return "Успех: Билет успешно куплен! Место: " + ticket.getSeatNumber();
 
-
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback(); // Откат в случае ошибки (Rollback)
-            }
+
             e.printStackTrace();
             return "Ошибка сервера: " + e.getMessage();
         }
     }
+
+    public List<String> getOccupiedSeats(Integer flightId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<Ticket> tickets = session.createQuery(
+                            "select t from Ticket t where t.flight.id = :flightId", Ticket.class)
+                    .setParameter("flightId", flightId)
+                    .list();
+            return tickets.stream()
+                    .map(Ticket::getSeatNumber)
+                    .filter(seat -> seat != null && !seat.isEmpty())
+                    .collect(java.util.stream.Collectors.toList());
+        }
+    }
+
 }

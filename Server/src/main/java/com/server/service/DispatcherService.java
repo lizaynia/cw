@@ -50,7 +50,7 @@ public class DispatcherService {
         }
     }
 
-    public String addFlight(String flightNumber, String departureCityName, String arrivalCityName, LocalDateTime departureTime, Integer airplaneId) {
+    public String addFlight(String flightNumber, String departureCityName, String arrivalCityName, LocalDateTime departureTime, Integer airplaneId, java.math.BigDecimal basePrice) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
@@ -79,7 +79,7 @@ public class DispatcherService {
             flight.setArrivalCity(arrCity);
             flight.setDepartureTime(departureTime);
             flight.setAirplane(airplane);
-
+            flight.setBasePrice(basePrice != null ? basePrice : java.math.BigDecimal.valueOf(100.0));
             flightDao.save(session, flight);
 
             transaction.commit();
@@ -96,13 +96,21 @@ public class DispatcherService {
             transaction = session.beginTransaction();
             Flight flight = flightDao.findById(session, flightId);
             if (flight == null) return "Ошибка: Рейс не найден.";
-            
+
+            long ticketCount = session.createQuery(
+                            "select count(t) from Ticket t where t.flight.id = :id", Long.class)
+                    .setParameter("id", flightId)
+                    .uniqueResult();
+            if (ticketCount > 0) {
+                return "Ошибка: Невозможно удалить рейс с проданными билетами.";
+            }
+
             flightDao.delete(session, flight);
             transaction.commit();
-            return "Успех: Рейс удален.";
+            return "Успех: Рейс удалён.";
         } catch (Exception e) {
             if (transaction != null) transaction.rollback();
-            return "Ошибка удаления рейса: " + e.getMessage();
+            return "Ошибка удаления: " + e.getMessage();
         }
     }
 }

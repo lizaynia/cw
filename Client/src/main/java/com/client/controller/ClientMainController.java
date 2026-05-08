@@ -108,6 +108,24 @@ public class ClientMainController extends BaseController {
     }
 
     @FXML
+    private void handleShowProfile() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/UserProfile.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Личный кабинет");
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(catalogTable.getScene().getWindow());
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Ошибка", "Не удалось открыть личный кабинет: " + e.getMessage());
+        }
+    }
+
+    @FXML
     private void handleLogout() {
         Stage stage = (Stage) catalogTable.getScene().getWindow();
         switchScene("/views/Login.fxml", "Login", stage);

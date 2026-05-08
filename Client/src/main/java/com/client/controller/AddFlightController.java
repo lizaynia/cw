@@ -24,6 +24,7 @@ public class AddFlightController extends BaseController {
     @FXML private DatePicker datePicker;
     @FXML private TextField timeField;
     @FXML private ComboBox<Airplane> airplaneComboBox;
+    @FXML private TextField priceField;
 
     private Runnable onFlightAdded;
 
@@ -55,14 +56,13 @@ public class AddFlightController extends BaseController {
     public void setOnFlightAdded(Runnable onFlightAdded) {
         this.onFlightAdded = onFlightAdded;
     }
-
     @FXML
     private void handleSave() {
         String flightNum = flightNumberField.getText();
         String depCity = departureCityField.getText();
         String arrCity = arrivalCityField.getText();
         Airplane airplane = airplaneComboBox.getValue();
-        
+
         if (!ValidationUtil.isNotEmpty(flightNum, depCity, arrCity) || datePicker.getValue() == null || airplane == null) {
             showError("Ошибка", "Заполните все поля!");
             return;
@@ -76,9 +76,23 @@ public class AddFlightController extends BaseController {
             return;
         }
 
+        Double price = null;
+        if (priceField != null && !priceField.getText().trim().isEmpty()) {
+            try {
+                price = Double.parseDouble(priceField.getText());
+                if (price <= 0) {
+                    showError("Ошибка", "Цена должна быть положительным числом");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                showError("Ошибка", "Неверный формат цены");
+                return;
+            }
+        }
+
         LocalDateTime dateTime = LocalDateTime.of(datePicker.getValue(), time);
 
-        Request request = new Request(CommandType.ADD_FLIGHT.name(), flightNum, depCity, arrCity, dateTime, airplane.getId());
+        Request request = new Request(CommandType.ADD_FLIGHT.name(), flightNum, depCity, arrCity, dateTime, airplane.getId(), price);
         executeTask(request, response -> {
             showInfo("Успех", "Рейс успешно добавлен!");
             if (onFlightAdded != null) onFlightAdded.run();

@@ -5,6 +5,7 @@ import com.common.Response;
 import com.common.CommandType;
 import com.common.dto.*;
 import com.common.entity.Flight;
+import com.common.entity.Passenger;
 import com.common.entity.Ticket;
 import com.common.entity.User;
 import com.server.dao.PassengerDao;
@@ -12,6 +13,7 @@ import com.server.service.*;
 import com.server.utils.DtoConverter;
 import com.server.utils.HibernateUtil;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.List;
 
 public class ClientHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
@@ -98,38 +101,82 @@ public class ClientHandler implements Runnable {
                             }
                             case GET_SCHEDULE: {
                                 java.util.List<Flight> flights = dispatcherService.getSchedule();
+                                // Подсчёт проданных билетов для каждого рейса
+                                java.util.Map<Integer, Long> bookedCounts = new java.util.HashMap<>();
+                                try (Session session = com.server.utils.HibernateUtil.getSessionFactory().openSession()) {
+                                    for (Flight flight : flights) {
+                                        Long count = session.createQuery(
+                                                        "select count(t) from Ticket t where t.flight.id = :flightId", Long.class)
+                                                .setParameter("flightId", flight.getId())
+                                                .uniqueResult();
+                                        bookedCounts.put(flight.getId(), count != null ? count : 0L);
+                                    }
+                                }
                                 response.setSuccess(true);
-                                response.setData(DtoConverter.toFlightDtoList(flights)); 
+                                response.setData(DtoConverter.toFlightDtoList(flights, bookedCounts));
                                 break;
                             }
-                            case BOOK_TICKET: {
-                                try (Session session = com.server.utils.HibernateUtil.getSessionFactory().openSession()) {
-                                    Integer userId = (Integer) request.getArgs()[0];
-                                    Integer flightId = (Integer) request.getArgs()[1];
-                                    String seatNumber = (String) request.getArgs()[2];
-                                    java.math.BigDecimal price;
-                                    
-                                    if (request.getArgs().length > 3) {
-                                        price = (java.math.BigDecimal) request.getArgs()[3];
-                                    } else {
-                                        // Если цена не передана, берем цену рейса из БД
-                                        Flight f = session.get(Flight.class, flightId);
-                                        price = java.math.BigDecimal.valueOf(f != null ? 100.0 : 0.0); // Заглушка
-                                    }
 
-                                    com.common.entity.Passenger p = passengerDao.findByUserId(session, userId);
-                                    if (p == null) {
+                            case UPDATE_PROFILE: {
+                                Integer userId = (Integer) request.getArgs()[0];
+                                String newPassword = (String) request.getArgs()[1];
+                                String msg = authService.updatePassword(userId, newPassword);
+                                response.setSuccess(msg.startsWith("Успех"));
+                                response.setMessage(msg);
+                                break;
+                            }
+
+                            case BOOK_TICKET: {
+                                Integer userId = (Integer) request.getArgs()[0];
+                                Integer flightId = (Integer) request.getArgs()[1];
+                                String seatNumber = (String) request.getArgs()[2];
+
+                                Session session = null;
+                                Transaction transaction = null;
+                                try {
+                                    session = HibernateUtil.getSessionFactory().openSession();
+                                    transaction = session.beginTransaction();
+
+                                    // Находим пассажира
+                                    Passenger passenger = passengerDao.findByUserId(session, userId);
+                                    if (passenger == null) {
                                         response.setSuccess(false);
                                         response.setMessage("Ошибка: Профиль пассажира не найден.");
                                     } else {
-                                        String msg = bookingService.bookTicket(p.getId(), flightId, price, seatNumber);
+                                        // ВЫЗЫВАЕМ МЕТОД С ПЕРЕДАЧЕЙ СЕССИИ
+                                        String msg = bookingService.bookTicket(session, passenger.getId(), flightId, seatNumber);
                                         response.setSuccess(msg.startsWith("Успех"));
                                         response.setMessage(msg);
                                     }
 
+                                    transaction.commit(); // Коммитим только если всё успешно
+                                } catch (Exception e) {
+                                    if (transaction != null) transaction.rollback();
+                                    response.setSuccess(false);
+                                    response.setMessage("Ошибка: " + e.getMessage());
+                                } finally {
+                                    if (session != null) session.close();
                                 }
                                 break;
                             }
+
+                            case GET_OCCUPIED_SEATS: {
+                                Integer flightId = (Integer) request.getArgs()[0];
+                                List<String> occupiedSeats = bookingService.getOccupiedSeats(flightId);
+                                response.setSuccess(true);
+                                response.setData(occupiedSeats);
+                                break;
+                            }
+
+                            case UPDATE_PROFILE: {
+                                Integer userId = (Integer) request.getArgs()[0];
+                                String newPassword = (String) request.getArgs()[1];
+                                String msg = authService.updatePassword(userId, newPassword);
+                                response.setSuccess(msg.startsWith("Успех"));
+                                response.setMessage(msg);
+                                break;
+                            }
+
                             case SEARCH_FLIGHTS: {
                                 String dep = (String) request.getArgs()[0];
                                 String arr = (String) request.getArgs()[1];
@@ -173,9 +220,14 @@ public class ClientHandler implements Runnable {
                                 String arrCity = (String) request.getArgs()[2];
                                 java.time.LocalDateTime time = (java.time.LocalDateTime) request.getArgs()[3];
                                 Integer airplaneId = (Integer) request.getArgs()[4];
-                                String msg = dispatcherService.addFlight(flightNum, depCity, arrCity, time, airplaneId);
-                                response.setSuccess(msg.startsWith("Успех"));
-                                response.setMessage(msg);
+                                java.math.BigDecimal price = null;
+                                if (request.getArgs().length > 5 && request.getArgs()[5] != null) {
+                                    if (request.getArgs()[5] instanceof Double) {
+                                        price = java.math.BigDecimal.valueOf((Double) request.getArgs()[5]);
+                                    } else if (request.getArgs()[5] instanceof java.math.BigDecimal) {
+                                        price = (java.math.BigDecimal) request.getArgs()[5];
+                                    }
+                                }
                                 break;
                             }
                             case DELETE_FLIGHT: {
@@ -209,6 +261,14 @@ public class ClientHandler implements Runnable {
                             case GET_STATISTICS: {
                                 response.setSuccess(true);
                                 response.setData(adminService.getStatistics());
+                                break;
+                            }
+
+                            case GET_OCCUPIED_SEATS: {
+                                Integer flightId = (Integer) request.getArgs()[0];
+                                List<String> occupiedSeats = bookingService.getOccupiedSeats(flightId);
+                                response.setSuccess(true);
+                                response.setData(occupiedSeats);
                                 break;
                             }
                             default:

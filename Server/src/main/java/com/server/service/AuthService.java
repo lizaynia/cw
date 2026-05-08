@@ -64,4 +64,23 @@ public class AuthService {
             return null;
         }
     }
+
+    public String updatePassword(Integer userId, String newPassword) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            User user = userDao.findById(session, userId);
+            if (user == null) {
+                return "Ошибка: Пользователь не найден.";
+            }
+            String hashedPassword = HashUtil.hashPassword(newPassword);
+            user.setPassword(hashedPassword);
+            userDao.update(session, user);
+            transaction.commit();
+            return "Успех: Пароль успешно изменён.";
+        } catch (Exception e) {
+            if (transaction != null) transaction.rollback();
+            return "Ошибка смены пароля: " + e.getMessage();
+        }
+    }
 }

@@ -26,8 +26,6 @@
                 <TextField fx:id="lastNameField" promptText="Фамилия" styleClass="input-field" HBox.hgrow="ALWAYS" />
             </HBox>
 
-            <Label text="Email" styleClass="secondary-label" GridPane.rowIndex="1" />
-            <TextField promptText="Email" styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
             <Label text="Логин" styleClass="secondary-label" GridPane.rowIndex="2" />
             <TextField fx:id="loginField" promptText="Логин" styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="2" />

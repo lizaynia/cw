@@ -48,6 +48,16 @@ public class DispatcherMainController extends BaseController {
         loadFlights();
     }
 
+    @FXML
+    private void handleEditFlight() {
+        FlightDto selected = flightsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("Ошибка", "Выберите рейс для редактирования.");
+            return;
+        }
+        // Открыть окно редактирования (реализуйте по аналогии с AddFlight)
+    }
+
     private void loadFlights() {
         Request request = new Request(CommandType.GET_SCHEDULE.name());
         executeTask(request, response -> {

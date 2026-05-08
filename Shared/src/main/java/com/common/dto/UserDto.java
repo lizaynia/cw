@@ -21,4 +21,10 @@ public class UserDto implements Serializable {
     public void setLogin(String login) { this.login = login; }
     public String getRoleName() { return roleName; }
     public void setRoleName(String roleName) { this.roleName = roleName; }
+    private boolean isBlocked;
+
+    public boolean getIsBlocked() { return isBlocked; }  // для PropertyValueFactory
+    public void setIsBlocked(boolean blocked) { isBlocked = blocked; }
+
+
 }

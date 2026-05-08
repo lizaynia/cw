@@ -34,6 +34,12 @@ public class Flight implements Serializable {
     @OneToMany(mappedBy = "flight", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Ticket> tickets;
 
+    @Column(name = "base_price", nullable = false)
+    private java.math.BigDecimal basePrice = java.math.BigDecimal.valueOf(100.0);
+
+    public java.math.BigDecimal getBasePrice() { return basePrice; }
+    public void setBasePrice(java.math.BigDecimal basePrice) { this.basePrice = basePrice; }
+
     public Flight() {}
 
     public Integer getId() { return id; }
