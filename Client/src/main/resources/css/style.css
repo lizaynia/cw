@@ -105,13 +105,28 @@
 }
 
 /* Ensure text in table cells remains dark on hover/selection unless specified */
-.table-row-cell:hover .table-cell,
-.table-row-cell:selected .table-cell {
-    -fx-text-fill: inherit;
+.table-row-cell:hover .table-cell {
+    -fx-text-fill: #333333;
 }
 
 .table-row-cell:selected .table-cell {
     -fx-text-fill: #d63384;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #f5f5f5;
+    -fx-text-background-color: #333333;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #fdf0f5;
+    -fx-text-background-color: #d63384;
+}
+
+/* Hide empty filler column */
+.table-view .filler, .table-view .column-header-background .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 /* Seat Selection Styles */
