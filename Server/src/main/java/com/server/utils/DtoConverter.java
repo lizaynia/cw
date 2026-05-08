@@ -36,14 +36,14 @@ public class DtoConverter {
         if (flight == null) return null;
         FlightDto dto = new FlightDto();
         dto.setId(flight.getId());
-        dto.setBookingTime(ticket.getBookingTime());
-        dto.setIsBlocked(user.isBlocked());
+
         dto.setFlightNumber(flight.getFlightNumber());
         dto.setDepartureCity(flight.getDepartureCity().getCityName());
         dto.setArrivalCity(flight.getArrivalCity().getCityName());
         dto.setDepartureTime(flight.getDepartureTime());
         dto.setAirplaneModel(flight.getAirplane().getModel());
         dto.setAvailableSeats(flight.getAirplane().getCapacity() - (int)bookedTickets);
+        dto.setBasePrice(flight.getBasePrice() != null ? flight.getBasePrice().doubleValue() : 0.0);
         return dto;
     }
 

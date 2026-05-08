@@ -72,14 +72,11 @@ public class BookingService {
 
     public List<String> getOccupiedSeats(Integer flightId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            List<Ticket> tickets = session.createQuery(
-                            "select t from Ticket t where t.flight.id = :flightId", Ticket.class)
+            return session.createQuery(
+                            "select t.seatNumber from Ticket t where t.flight.id = :flightId and t.seatNumber is not null",
+                            String.class)
                     .setParameter("flightId", flightId)
                     .list();
-            return tickets.stream()
-                    .map(Ticket::getSeatNumber)
-                    .filter(seat -> seat != null && !seat.isEmpty())
-                    .collect(java.util.stream.Collectors.toList());
         }
     }
 

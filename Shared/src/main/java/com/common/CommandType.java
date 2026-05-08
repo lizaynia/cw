@@ -25,5 +25,6 @@ public enum CommandType {
     
     // --- НОВЫЕ КОМАНДЫ ДЛЯ UI ---
     GET_OCCUPIED_SEATS,
-    UPDATE_PROFILE
+    UPDATE_PROFILE,
+    UPDATE_FLIGHT
 }

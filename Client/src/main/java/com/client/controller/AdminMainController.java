@@ -56,4 +56,25 @@ public class AdminMainController extends BaseController {
         Stage stage = (Stage) usersTable.getScene().getWindow();
         switchScene("/views/Login.fxml", "Login", stage);
     }
+
+    @FXML
+    private void handleChangeRole() {
+        UserDto selected = usersTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("Ошибка", "Выберите пользователя");
+            return;
+        }
+        // Открыть диалог выбора роли
+    }
+
+    @FXML
+    private void handleBlockUser() {
+        UserDto selected = usersTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("Ошибка", "Выберите пользователя");
+            return;
+        }
+        // Отправить запрос на блокировку
+    }
+
 }

@@ -14,11 +14,15 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 
 public class DispatcherMainController extends BaseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DispatcherMainController.class);
 
     @FXML
     private TableView<FlightDto> flightsTable;
@@ -55,7 +59,25 @@ public class DispatcherMainController extends BaseController {
             showError("Ошибка", "Выберите рейс для редактирования.");
             return;
         }
-        // Открыть окно редактирования (реализуйте по аналогии с AddFlight)
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/EditFlight.fxml"));
+            Parent root = loader.load();
+
+            EditFlightController controller = loader.getController();
+            controller.setFlight(selected);
+            controller.setOnFlightUpdated(this::loadFlights);
+
+            Stage stage = new Stage();
+            stage.setTitle("Редактирование рейса - " + selected.getFlightNumber());
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(flightsTable.getScene().getWindow());
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            logger.error("Ошибка открытия окна редактирования", e);
+            showError("Ошибка", "Не удалось открыть окно редактирования: " + e.getMessage());
+        }
     }
 
     private void loadFlights() {
@@ -71,10 +93,10 @@ public class DispatcherMainController extends BaseController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/AddFlight.fxml"));
             Parent root = loader.load();
-            
+
             AddFlightController controller = loader.getController();
             controller.setOnFlightAdded(this::loadFlights);
-            
+
             Stage stage = new Stage();
             stage.setTitle("Aero System - Добавить рейс");
             stage.initModality(Modality.WINDOW_MODAL);
@@ -82,7 +104,7 @@ public class DispatcherMainController extends BaseController {
             stage.setScene(new Scene(root));
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Ошибка загрузки окна добавления рейса", e);
             showError("Ошибка загрузки", "Не удалось открыть окно добавления рейса: " + e.getMessage());
         }
     }

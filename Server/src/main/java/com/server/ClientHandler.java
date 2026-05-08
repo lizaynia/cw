@@ -51,12 +51,12 @@ public class ClientHandler implements Runnable {
             while (!socket.isClosed()) {
                 try {
                     Object obj = in.readObject();
-                    if (!(obj instanceof Request)) {
-                        logger.warn("Получен объект неверного типа: {}", obj != null ? obj.getClass().getName() : "null");
+                    if (!(obj instanceof Request request)) { // ← pattern variable
+                        logger.warn("Получен объект неверного типа");
                         continue;
                     }
                     
-                    Request request = (Request) obj;
+
                     logger.info("Запрос: {}", request.getCommand());
                     
                     Response response = new Response();
@@ -131,31 +131,27 @@ public class ClientHandler implements Runnable {
                                 Integer flightId = (Integer) request.getArgs()[1];
                                 String seatNumber = (String) request.getArgs()[2];
 
-                                Session session = null;
-                                Transaction transaction = null;
-                                try {
-                                    session = HibernateUtil.getSessionFactory().openSession();
-                                    transaction = session.beginTransaction();
 
-                                    // Находим пассажира
-                                    Passenger passenger = passengerDao.findByUserId(session, userId);
-                                    if (passenger == null) {
-                                        response.setSuccess(false);
-                                        response.setMessage("Ошибка: Профиль пассажира не найден.");
-                                    } else {
-                                        // ВЫЗЫВАЕМ МЕТОД С ПЕРЕДАЧЕЙ СЕССИИ
-                                        String msg = bookingService.bookTicket(session, passenger.getId(), flightId, seatNumber);
-                                        response.setSuccess(msg.startsWith("Успех"));
-                                        response.setMessage(msg);
+                                try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                                    Transaction transaction = session.beginTransaction();
+                                    try {
+                                        Passenger passenger = passengerDao.findByUserId(session, userId);
+                                        if (passenger == null) {
+                                            response.setSuccess(false);
+                                            response.setMessage("Ошибка: Профиль пассажира не найден.");
+                                        } else {
+                                            String msg = bookingService.bookTicket(session, passenger.getId(), flightId, seatNumber);
+                                            response.setSuccess(msg.startsWith("Успех"));
+                                            response.setMessage(msg);
+                                        }
+                                        transaction.commit();
+                                    } catch (Exception e) {
+                                        transaction.rollback();
+                                        throw e;
                                     }
-
-                                    transaction.commit(); // Коммитим только если всё успешно
                                 } catch (Exception e) {
-                                    if (transaction != null) transaction.rollback();
                                     response.setSuccess(false);
                                     response.setMessage("Ошибка: " + e.getMessage());
-                                } finally {
-                                    if (session != null) session.close();
                                 }
                                 break;
                             }
@@ -168,22 +164,27 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
 
-                            case UPDATE_PROFILE: {
-                                Integer userId = (Integer) request.getArgs()[0];
-                                String newPassword = (String) request.getArgs()[1];
-                                String msg = authService.updatePassword(userId, newPassword);
-                                response.setSuccess(msg.startsWith("Успех"));
-                                response.setMessage(msg);
-                                break;
-                            }
+
 
                             case SEARCH_FLIGHTS: {
                                 String dep = (String) request.getArgs()[0];
                                 String arr = (String) request.getArgs()[1];
                                 java.time.LocalDate date = (java.time.LocalDate) request.getArgs()[2];
                                 java.util.List<Flight> flights = clientService.searchFlights(dep, arr, date);
+
+                                // ✅ ИСПРАВЛЕНО - передаём bookedCounts (0 для поиска или считаем)
+                                java.util.Map<Integer, Long> bookedCounts = new java.util.HashMap<>();
+                                try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                                    for (Flight flight : flights) {
+                                        Long count = session.createQuery(
+                                                        "select count(t) from Ticket t where t.flight.id = :flightId", Long.class)
+                                                .setParameter("flightId", flight.getId())
+                                                .uniqueResult();
+                                        bookedCounts.put(flight.getId(), count != null ? count : 0L);
+                                    }
+                                }
                                 response.setSuccess(true);
-                                response.setData(DtoConverter.toFlightDtoList(flights));
+                                response.setData(DtoConverter.toFlightDtoList(flights, bookedCounts)); // ✅ 2 аргумента
                                 break;
                             }
                             case GET_TICKET_HISTORY: {
@@ -228,6 +229,10 @@ public class ClientHandler implements Runnable {
                                         price = (java.math.BigDecimal) request.getArgs()[5];
                                     }
                                 }
+
+                                String msg = dispatcherService.addFlight(flightNum, depCity, arrCity, time, airplaneId, price);
+                                response.setSuccess(msg.startsWith("Успех"));
+                                response.setMessage(msg);
                                 break;
                             }
                             case DELETE_FLIGHT: {
@@ -264,13 +269,7 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
 
-                            case GET_OCCUPIED_SEATS: {
-                                Integer flightId = (Integer) request.getArgs()[0];
-                                List<String> occupiedSeats = bookingService.getOccupiedSeats(flightId);
-                                response.setSuccess(true);
-                                response.setData(occupiedSeats);
-                                break;
-                            }
+
                             default:
                                 response.setSuccess(false);
                                 response.setMessage("Команда " + command + " еще не реализована");

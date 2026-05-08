@@ -64,28 +64,21 @@ public class ClientMainController extends BaseController {
             return;
         }
 
-        TextInputDialog dialog = new TextInputDialog("A1");
-        dialog.setTitle("Выбор места");
-        dialog.setHeaderText("Рейс: " + selected.getFlightNumber());
-        dialog.setContentText("Введите номер места (например, A1, B10):");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/SeatSelection.fxml"));
+            Parent root = loader.load();
 
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            String seat = result.get().trim();
-            if (seat.isEmpty()) {
-                showError("Ошибка", "Номер места не может быть пустым.");
-                return;
-            }
+            SeatSelectionController controller = loader.getController();
+            controller.setFlight(selected);
 
-            Request request = new Request(CommandType.BOOK_TICKET.name(), 
-                    ServerConnection.getInstance().getCurrentUser().getId(), 
-                    selected.getId(), 
-                    seat);
-                    
-            executeTask(request, response -> {
-                showInfo("Успех", "Билет на место " + seat + " успешно куплен!");
-                loadFlights();
-            });
+            Stage stage = new Stage();
+            stage.setTitle("Выбор места");
+            stage.initModality(Modality.WINDOW_MODAL);
+            stage.initOwner(catalogTable.getScene().getWindow());
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            showError("Ошибка", "Не удалось открыть выбор мест");
         }
     }
 
