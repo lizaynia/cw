@@ -3,7 +3,6 @@ package com.client.controller;
 import com.common.CommandType;
 import com.common.Request;
 import com.common.dto.FlightDto;
-
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,10 +11,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Modality;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -29,7 +26,10 @@ public class SeatSelectionController extends BaseController {
     private Label flightInfoLabel;
 
     @FXML
-    private GridPane seatGrid;
+    private GridPane leftSeatsGrid;
+
+    @FXML
+    private GridPane rightSeatsGrid;
 
     @FXML
     private Label selectedSeatLabel;
@@ -40,86 +40,172 @@ public class SeatSelectionController extends BaseController {
     private FlightDto flight;
     private String selectedSeat = null;
     private Set<String> occupiedSeats = new HashSet<>();
+    private Set<VBox> seatBoxes = new HashSet<>(); // Для отслеживания всех созданных кнопок мест
+
+    private static final int ROWS = 30;
+    private static final String[] LEFT_COLUMNS = {"A", "B", "C"};
+    private static final String[] RIGHT_COLUMNS = {"D", "E", "F"};
 
     public void setFlight(FlightDto flight) {
         this.flight = flight;
-        flightInfoLabel.setText("Рейс: " + flight.getFlightNumber() + " | " + flight.getRoute());
+        int availableSeats = flight.getAvailableSeats() != null ? flight.getAvailableSeats() : 180;
+        flightInfoLabel.setText("Рейс: " + flight.getFlightNumber() + " | " + flight.getRoute() +
+                " | Свободно мест: " + availableSeats);
         loadOccupiedSeats();
     }
 
     private void loadOccupiedSeats() {
         Request request = new Request(CommandType.GET_OCCUPIED_SEATS.name(), flight.getId());
         executeTask(request, response -> {
-            List<String> seats = (List<String>) response.getData();
-            occupiedSeats.addAll(seats);
-            Platform.runLater(this::renderSeats);
+            if (response.isSuccess() && response.getData() != null) {
+                List<String> seats = (List<String>) response.getData();
+                occupiedSeats.clear();
+                occupiedSeats.addAll(seats);
+                Platform.runLater(this::renderSeats);
+            } else {
+                Platform.runLater(this::renderSeats);
+            }
         });
     }
 
     private void renderSeats() {
-        seatGrid.getChildren().clear();
-        
-        // Рисуем сетку 6x10 (A-F, 1-10) для примера
-        String[] rows = {"A", "B", "C", "D", "E", "F"};
-        for (int r = 0; r < rows.length; r++) {
-            for (int c = 1; c <= 10; c++) {
-                String seatNum = rows[r] + c;
-                
-                StackPane seatPane = new StackPane();
-                seatPane.getStyleClass().add("seat");
-                
-                if (occupiedSeats.contains(seatNum)) {
-                    seatPane.getStyleClass().add("seat-occupied");
-                } else {
-                    seatPane.getStyleClass().add("seat-free");
-                    seatPane.setOnMouseClicked(e -> selectSeat(seatNum, seatPane));
-                }
-                
-                Label lbl = new Label(seatNum);
-                seatPane.getChildren().add(lbl);
-                
-                seatGrid.add(seatPane, c, r);
+        seatBoxes.clear();
+        leftSeatsGrid.getChildren().clear();
+        rightSeatsGrid.getChildren().clear();
+
+        // Заголовки колонок для левой стороны
+        for (int i = 0; i < LEFT_COLUMNS.length; i++) {
+            Label header = new Label(LEFT_COLUMNS[i]);
+            header.setStyle("-fx-font-weight: bold; -fx-text-fill: #666; -fx-padding: 5;");
+            leftSeatsGrid.add(header, i, 0);
+        }
+
+        // Заголовки колонок для правой стороны
+        for (int i = 0; i < RIGHT_COLUMNS.length; i++) {
+            Label header = new Label(RIGHT_COLUMNS[i]);
+            header.setStyle("-fx-font-weight: bold; -fx-text-fill: #666; -fx-padding: 5;");
+            rightSeatsGrid.add(header, i, 0);
+        }
+
+        // Рисуем места (ряды 1-30)
+        for (int row = 1; row <= ROWS; row++) {
+            for (int col = 0; col < LEFT_COLUMNS.length; col++) {
+                String seatNum = LEFT_COLUMNS[col] + row;
+                VBox seatBox = createSeatBox(seatNum);
+                seatBoxes.add(seatBox);
+                leftSeatsGrid.add(seatBox, col, row);
             }
-            // Проход между C и D
-            if (r == 2) {
-                Region spacer = new Region();
-                spacer.setPrefHeight(20);
-                seatGrid.add(spacer, 0, r + 1, 11, 1);
+
+            for (int col = 0; col < RIGHT_COLUMNS.length; col++) {
+                String seatNum = RIGHT_COLUMNS[col] + row;
+                VBox seatBox = createSeatBox(seatNum);
+                seatBoxes.add(seatBox);
+                rightSeatsGrid.add(seatBox, col, row);
             }
         }
     }
 
-    private void selectSeat(String seatNum, StackPane pane) {
-        // Сброс предыдущего выбора
-        seatGrid.getChildren().forEach(node -> {
-            if (node instanceof StackPane) {
-                node.getStyleClass().remove("seat-selected");
-                if (!occupiedSeats.contains(((Label)((StackPane)node).getChildren().get(0)).getText())) {
-                    if (!node.getStyleClass().contains("seat-free")) {
-                         node.getStyleClass().add("seat-free");
-                    }
-                }
-            }
-        });
+    private VBox createSeatBox(String seatNum) {
+        VBox seatBox = new VBox(2);
+        seatBox.setAlignment(javafx.geometry.Pos.CENTER);
+        seatBox.setPrefWidth(55);
+        seatBox.setPrefHeight(55);
+        seatBox.setStyle("-fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; -fx-border-color: #ccc;");
+        seatBox.setUserData(seatNum); // Сохраняем номер места в userData
 
+        Text seatText = new Text(seatNum);
+        seatText.setStyle("-fx-font-size: 12; -fx-font-weight: bold;");
+
+        boolean isOccupied = occupiedSeats.contains(seatNum);
+
+        if (isOccupied) {
+            seatBox.setStyle("-fx-background-color: #e0e0e0; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; -fx-border-color: #bbb;");
+            seatText.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-fill: #999;");
+            Text occupiedText = new Text("ЗАНЯТО");
+            occupiedText.setStyle("-fx-font-size: 8; -fx-fill: #999;");
+            seatBox.getChildren().addAll(seatText, occupiedText);
+        } else {
+            seatBox.setStyle("-fx-background-color: #f0f9f0; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; -fx-border-color: #4caf50;");
+            seatBox.setCursor(javafx.scene.Cursor.HAND);
+            seatText.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-fill: #4caf50;");
+            Text freeText = new Text("СВОБОДНО");
+            freeText.setStyle("-fx-font-size: 8; -fx-fill: #4caf50;");
+            seatBox.getChildren().addAll(seatText, freeText);
+
+            seatBox.setOnMouseClicked(e -> selectSeat(seatNum, seatBox));
+
+            seatBox.setOnMouseEntered(e -> {
+                if (selectedSeat == null || !seatNum.equals(selectedSeat)) {
+                    seatBox.setStyle("-fx-background-color: #e8f5e9; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 2; -fx-border-color: #4caf50;");
+                }
+            });
+            seatBox.setOnMouseExited(e -> {
+                if (selectedSeat == null || !seatNum.equals(selectedSeat)) {
+                    seatBox.setStyle("-fx-background-color: #f0f9f0; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; -fx-border-color: #4caf50;");
+                }
+            });
+        }
+
+        return seatBox;
+    }
+
+    private void selectSeat(String seatNum, VBox seatBox) {
+        resetSelection();
         selectedSeat = seatNum;
-        pane.getStyleClass().remove("seat-free");
-        pane.getStyleClass().add("seat-selected");
-        
+
+        // Стиль для выбранного места
+        seatBox.setStyle("-fx-background-color: #d63384; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 2; -fx-border-color: #c12a75;");
+
+        if (seatBox.getChildren().size() > 0) {
+            Text seatText = (Text) seatBox.getChildren().get(0);
+            seatText.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-fill: white;");
+        }
+        if (seatBox.getChildren().size() > 1) {
+            Text statusText = (Text) seatBox.getChildren().get(1);
+            statusText.setStyle("-fx-font-size: 8; -fx-fill: white;");
+            statusText.setText("ВЫБРАНО");
+        }
+
         selectedSeatLabel.setText("Выбрано место: " + selectedSeat);
         bookButton.setDisable(false);
     }
 
+    private void resetSelection() {
+        for (VBox box : seatBoxes) {
+            String seatNum = (String) box.getUserData();
+            if (seatNum == null) continue;
+
+            if (!occupiedSeats.contains(seatNum) && (selectedSeat == null || !seatNum.equals(selectedSeat))) {
+                box.setStyle("-fx-background-color: #f0f9f0; -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 1; -fx-border-color: #4caf50;");
+
+                if (box.getChildren().size() > 0) {
+                    Text seatText = (Text) box.getChildren().get(0);
+                    seatText.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-fill: #4caf50;");
+                }
+                if (box.getChildren().size() > 1) {
+                    Text statusText = (Text) box.getChildren().get(1);
+                    statusText.setText("СВОБОДНО");
+                    statusText.setStyle("-fx-font-size: 8; -fx-fill: #4caf50;");
+                }
+            }
+        }
+    }
+
     @FXML
     private void handleProceedToPayment() {
+        if (selectedSeat == null) {
+            showError("Ошибка", "Выберите место!");
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/Payment.fxml"));
             Parent root = loader.load();
-            
+
             PaymentController controller = loader.getController();
             controller.setData(flight, selectedSeat);
-            
-            Stage stage = (Stage) seatGrid.getScene().getWindow();
+
+            Stage stage = (Stage) bookButton.getScene().getWindow();
             stage.setScene(new Scene(root));
         } catch (IOException e) {
             System.err.println("Ошибка загрузки экрана оплаты: " + e.getMessage());
@@ -129,6 +215,6 @@ public class SeatSelectionController extends BaseController {
 
     @FXML
     private void handleCancel() {
-        ((Stage) seatGrid.getScene().getWindow()).close();
+        ((Stage) bookButton.getScene().getWindow()).close();
     }
 }

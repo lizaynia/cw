@@ -63,7 +63,10 @@ public class DispatcherMainController extends BaseController {
 
             EditFlightController controller = loader.getController();
             controller.setFlight(selected);
-            controller.setOnFlightUpdated(this::loadFlights);
+            controller.setOnFlightUpdated(() -> {
+                loadFlights();
+                notifyCitiesUpdated();
+            });
 
             Stage stage = new Stage();
             stage.setTitle("Редактирование рейса - " + selected.getFlightNumber());
@@ -86,6 +89,7 @@ public class DispatcherMainController extends BaseController {
         });
     }
 
+    // ✅ ОДИН метод handleAddFlight (убираем дублирование)
     @FXML
     private void handleAddFlight() {
         try {
@@ -93,7 +97,10 @@ public class DispatcherMainController extends BaseController {
             Parent root = loader.load();
 
             AddFlightController controller = loader.getController();
-            controller.setOnFlightAdded(this::loadFlights);
+            controller.setOnFlightAdded(() -> {
+                loadFlights();
+                notifyCitiesUpdated();
+            });
 
             Stage stage = new Stage();
             stage.setTitle("Aero System - Добавить рейс");
@@ -117,9 +124,10 @@ public class DispatcherMainController extends BaseController {
 
         if (showConfirmation("Удаление рейса", "Вы уверены, что хотите удалить рейс " + selected.getFlightNumber() + "?")) {
             Request request = new Request(CommandType.DELETE_FLIGHT.name(), selected.getId());
-            executeTask(request, response -> {  // ← убрали _, добавили response
+            executeTask(request, response -> {
                 showInfo("Успех", "Рейс удален.");
                 loadFlights();
+                notifyCitiesUpdated();
             });
         }
     }
@@ -128,5 +136,11 @@ public class DispatcherMainController extends BaseController {
     private void handleLogout() {
         Stage stage = (Stage) flightsTable.getScene().getWindow();
         switchScene("/views/Login.fxml", "Login", stage);
+    }
+
+    // ✅ Метод для оповещения об обновлении городов через статическое событие
+    private void notifyCitiesUpdated() {
+        // Используем статический метод для уведомления всех открытых окон клиента
+        ClientMainController.notifyCitiesChanged();
     }
 }

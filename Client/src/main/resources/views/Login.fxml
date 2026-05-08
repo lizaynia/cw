@@ -8,12 +8,12 @@
       fx:controller="com.client.controller.LoginController"
       styleClass="main-container" stylesheets="@/css/style.css">
     
-    <VBox spacing="20.0" alignment="CENTER" styleClass="panel" maxWidth="400">
+    <VBox spacing="30.0" alignment="CENTER" styleClass="panel" maxWidth="400">
         <padding>
             <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
         </padding>
 
-        <Label text="AERO SYSTEM" styleClass="title-label" />
+        <Label text="СИСТЕМА ПОКУПКИ БИЛЕТОВ" styleClass="title-label" style="-fx-font-size: 20px;" />
 
         <VBox spacing="5.0">
             <Label text="Логин" styleClass="secondary-label" />

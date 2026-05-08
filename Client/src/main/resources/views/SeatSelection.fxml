@@ -4,9 +4,9 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="20" styleClass="main-container" stylesheets="@/css/style.css"
-      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.client.controller.SeatSelectionController"
-      prefWidth="600" prefHeight="700">
+      prefWidth="800" prefHeight="750">
     <padding>
         <Insets bottom="30" left="30" right="30" top="30" />
     </padding>
@@ -16,29 +16,51 @@
         <Label fx:id="flightInfoLabel" text="Рейс: XY123 | Маршрут: Минск -> Москва" styleClass="secondary-label" />
     </VBox>
 
-    <VBox alignment="CENTER" spacing="10" VBox.vgrow="ALWAYS" styleClass="panel">
-        <Label text="Носовая часть" style="-fx-text-fill: #aaa; -fx-font-size: 10px;" />
-        
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-            <GridPane fx:id="seatGrid" alignment="CENTER" hgap="10" vgap="10">
-                <!-- Seats will be added dynamically here -->
-            </GridPane>
-        </ScrollPane>
-        
-        <Label text="Хвостовая часть" style="-fx-text-fill: #aaa; -fx-font-size: 10px;" />
-    </VBox>
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+        <VBox spacing="20" alignment="CENTER">
+
+            <!-- Схема самолета -->
+            <HBox spacing="40" alignment="CENTER">
+                <!-- Левая сторона (A, B, C) -->
+                <VBox spacing="10" alignment="CENTER">
+                    <Label text="Левый ряд" style="-fx-font-weight: bold; -fx-text-fill: #666;" />
+                    <GridPane fx:id="leftSeatsGrid" hgap="8" vgap="8" alignment="CENTER">
+                        <!-- Заполняется динамически -->
+                    </GridPane>
+                </VBox>
+
+                <!-- Проход -->
+                <Region prefWidth="40" />
+
+                <!-- Правая сторона (D, E, F) -->
+                <VBox spacing="10" alignment="CENTER">
+                    <Label text="Правый ряд" style="-fx-font-weight: bold; -fx-text-fill: #666;" />
+                    <GridPane fx:id="rightSeatsGrid" hgap="8" vgap="8" alignment="CENTER">
+                        <!-- Заполняется динамически -->
+                    </GridPane>
+                </VBox>
+            </HBox>
+
+            <!-- Нос и хвост -->
+            <HBox spacing="20" alignment="CENTER">
+                <Label text="◀ НОС" style="-fx-text-fill: #aaa; -fx-font-size: 10px;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="ХВОСТ ▶" style="-fx-text-fill: #aaa; -fx-font-size: 10px;" />
+            </HBox>
+        </VBox>
+    </ScrollPane>
 
     <HBox spacing="20" alignment="CENTER" styleClass="panel">
         <HBox spacing="5" alignment="CENTER">
-            <Region styleClass="legend-box, seat-free" />
+            <Region style="-fx-min-width: 20; -fx-min-height: 20; -fx-background-radius: 4; -fx-background-color: #f0f9f0; -fx-border-color: #4caf50; -fx-border-radius: 4;" />
             <Label text="Свободно" styleClass="secondary-label" />
         </HBox>
         <HBox spacing="5" alignment="CENTER">
-            <Region styleClass="legend-box, seat-occupied" />
+            <Region style="-fx-min-width: 20; -fx-min-height: 20; -fx-background-radius: 4; -fx-background-color: #e0e0e0; -fx-border-color: #bbb; -fx-border-radius: 4;" />
             <Label text="Занято" styleClass="secondary-label" />
         </HBox>
         <HBox spacing="5" alignment="CENTER">
-            <Region styleClass="legend-box, seat-selected" />
+            <Region style="-fx-min-width: 20; -fx-min-height: 20; -fx-background-radius: 4; -fx-background-color: #d63384; -fx-border-color: #c12a75; -fx-border-radius: 4;" />
             <Label text="Выбрано" styleClass="secondary-label" />
         </HBox>
     </HBox>

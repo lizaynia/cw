@@ -1,47 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.controller.ClientMainController" styleClass="main-container" stylesheets="@/css/style.css">
+<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/8"
+      xmlns:fx="http://javafx.com/fxml/1"   fx:controller="com.client.controller.ClientMainController"
+      styleClass="main-container" stylesheets="@/css/style.css">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
 
-    <Label text="Поиск и бронирование рейсов" styleClass="title-label"/>
+    <Label text=" Поиск и бронирование авиабилетов" styleClass="title-label"/>
 
-    <HBox spacing="10" alignment="CENTER" styleClass="panel">
-        <VBox spacing="5">
-            <Label text="Откуда" styleClass="secondary-label"/>
-            <TextField fx:id="fromField" promptText="Город отправления" styleClass="input-field"/>
-        </VBox>
-        <VBox spacing="5">
-            <Label text="Куда" styleClass="secondary-label"/>
-            <TextField fx:id="toField" promptText="Город прибытия" styleClass="input-field"/>
-        </VBox>
-        <VBox spacing="5">
-            <Label text="Дата" styleClass="secondary-label"/>
-            <DatePicker fx:id="datePicker" promptText="Выберите дату" styleClass="input-field"/>
-        </VBox>
-        <VBox spacing="5" alignment="BOTTOM_CENTER">
-            <Button onAction="#handleSearch" text="Найти" styleClass="button-primary"/>
-        </VBox>
+    <!-- РАСШИРЕННЫЙ ПОИСК -->
+    <VBox spacing="10" styleClass="panel">
+        <!-- Строка 1: Быстрые фильтры -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Быстрый поиск:" styleClass="secondary-label" />
+            <Button text="Сегодня" onAction="#handleQuickSearchToday" styleClass="button-secondary" />
+            <Button text="Завтра" onAction="#handleQuickSearchTomorrow" styleClass="button-secondary" />
+            <Button text="Через 5 дней" onAction="#handleQuickSearchWeekend" styleClass="button-secondary" />
+        </HBox>
+
+        <Separator />
+
+        <!-- Строка 2: Основные фильтры -->
+        <GridPane hgap="10" vgap="10">
+            <!-- Номер рейса -->
+            <Label text="Номер рейса:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="secondary-label" />
+            <TextField fx:id="flightNumberField" promptText="например, SU1234"
+                       styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="120" />
+
+            <!-- Откуда -->
+            <Label text="Откуда:" GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="secondary-label" />
+            <ComboBox fx:id="fromComboBox" promptText="Любой город"
+                      styleClass="input-field" GridPane.columnIndex="3" GridPane.rowIndex="0" prefWidth="150" />
+
+            <!-- Кнопка обмена -->
+            <Button onAction="#handleSwapCities" text="⇄"
+                    GridPane.columnIndex="4" GridPane.rowIndex="0"
+                    style="-fx-background-color: transparent; -fx-font-size: 18; -fx-cursor: hand;" />
+
+            <!-- Куда -->
+            <Label text="Куда:" GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="secondary-label" />
+            <ComboBox fx:id="toComboBox" promptText="Любой город"
+                      styleClass="input-field" GridPane.columnIndex="6" GridPane.rowIndex="0" prefWidth="150" />
+        </GridPane>
+
+        <!-- Строка 3: Дата и цена -->
+        <GridPane hgap="10" vgap="10">
+            <Label text="Дата вылета:" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="secondary-label" />
+            <DatePicker fx:id="datePicker" promptText="Любая дата"
+                        styleClass="input-field" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="140" />
+
+            <Label text="Макс. цена:" GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="secondary-label" />
+            <HBox spacing="10" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                <Slider fx:id="priceSlider" min="0" max="1000" value="1000" prefWidth="200" />
+                <Label fx:id="priceValueLabel" text="до 1000 BYN" styleClass="secondary-label" />
+            </HBox>
+
+            <CheckBox fx:id="directFlightsOnlyCheckBox" text="Только прямые рейсы"
+                      GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="secondary-label" />
+        </GridPane>
+
+        <!-- Строка 4: Кнопки действий -->
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button onAction="#handleResetFilters" text="Сбросить фильтры" styleClass="button-secondary" />
+            <Button onAction="#handleSearch" text="🔍 Найти рейсы" styleClass="button-primary" />
+        </HBox>
+    </VBox>
+
+    <!-- Результаты поиска -->
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label fx:id="resultsCountLabel" text="Найдено рейсов: 0" styleClass="secondary-label" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button onAction="#handleRefresh" text="🔄 Обновить" styleClass="button-secondary" />
     </HBox>
 
+    <!-- Таблица рейсов -->
     <TableView fx:id="catalogTable" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
         </columnResizePolicy>
         <columns>
-            <TableColumn fx:id="numberColumn" text="Рейс" prefWidth="80"/>
-            <TableColumn fx:id="routeColumn" text="Маршрут" prefWidth="300"/>
+            <TableColumn fx:id="numberColumn" text="Рейс" prefWidth="100"/>
+            <TableColumn fx:id="routeColumn" text="Маршрут" prefWidth="250"/>
+            <TableColumn fx:id="departureTimeColumn" text="Дата и время вылета" prefWidth="180"/>
             <TableColumn fx:id="priceColumn" text="Цена" prefWidth="100"/>
         </columns>
     </TableView>
 
+    <!-- Нижняя панель действий -->
     <HBox spacing="15" alignment="CENTER">
-        <Button text="Купить билет" onAction="#handleBuyTicket" styleClass="button-primary"/>
-        <Button text="Личный кабинет" onAction="#handleShowProfile" styleClass="button-secondary"/>
-        <Button text="Выйти" onAction="#handleLogout" styleClass="button-secondary"/>
+        <Button text="🎫 Купить билет" onAction="#handleBuyTicket" styleClass="button-primary"/>
+        <Button text="👤 Личный кабинет" onAction="#handleShowProfile" styleClass="button-secondary"/>
+        <Button text="📋 История билетов" onAction="#handleShowHistory" styleClass="button-secondary"/>
+        <Button text="🚪 Выйти" onAction="#handleLogout" styleClass="button-secondary"/>
     </HBox>
 </VBox>

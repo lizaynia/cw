@@ -10,6 +10,8 @@ public enum CommandType {
     BOOK_TICKET,
     GET_TICKET_HISTORY,
     SEARCH_FLIGHTS,
+    ADVANCED_SEARCH_FLIGHTS,
+    GET_CITIES_FROM_FLIGHTS,
 
     // --- ДИСПЕТЧЕР ---
     ADD_AIRPLANE,
@@ -29,5 +31,6 @@ public enum CommandType {
     // --- НОВЫЕ КОМАНДЫ ДЛЯ UI ---
     GET_OCCUPIED_SEATS,
     UPDATE_PROFILE,
+    UPDATE_PROFILE_INFO,
 
 }

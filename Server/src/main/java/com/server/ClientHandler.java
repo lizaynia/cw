@@ -1,5 +1,13 @@
 package com.server;
 
+import com.common.dto.CityDto;
+import com.common.entity.City;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import com.common.Request;
 import com.common.Response;
 import com.common.CommandType;
@@ -158,6 +166,63 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
 
+                            case UPDATE_PROFILE_INFO: {
+                                if (!isAuthenticated()) {
+                                    response.setSuccess(false);
+                                    response.setMessage("Требуется авторизация");
+                                    break;
+                                }
+
+                                Integer userId = (Integer) request.getArgs()[0];
+                                String fullName = (String) request.getArgs()[1];
+                                String passportNumber = (String) request.getArgs()[2];
+
+                                // Проверяем, что пользователь обновляет свой профиль
+                                if (!currentUser.getId().equals(userId)) {
+                                    response.setSuccess(false);
+                                    response.setMessage("Нельзя изменять профиль другого пользователя");
+                                    break;
+                                }
+
+                                Transaction tx = null;
+                                try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                                    tx = session.beginTransaction();
+
+                                    // Находим пассажира
+                                    Passenger passenger = passengerDao.findByUserId(session, userId);
+
+                                    if (passenger == null) {
+                                        // Создаём нового пассажира
+                                        passenger = new Passenger();
+                                        passenger.setUser(currentUser);
+                                    }
+
+                                    // Разделяем ФИО на имя и фамилию
+                                    String[] nameParts = fullName.split(" ", 2);
+                                    passenger.setFirstName(nameParts[0]);
+                                    passenger.setLastName(nameParts.length > 1 ? nameParts[1] : "");
+                                    passenger.setPassportNumber(passportNumber);
+
+                                    if (passenger.getId() == null) {
+                                        passengerDao.save(session, passenger);
+                                    } else {
+                                        passengerDao.update(session, passenger);
+                                    }
+
+                                    tx.commit();
+
+                                    response.setSuccess(true);
+                                    response.setMessage("Профиль успешно обновлён");
+
+                                } catch (Exception e) {
+                                    if (tx != null) tx.rollback();
+                                    response.setSuccess(false);
+                                    response.setMessage("Ошибка: " + e.getMessage());
+                                    e.printStackTrace();
+                                }
+                                break;
+                            }
+
                             case BOOK_TICKET: {
                                 // ✅ Только авторизованный пользователь
                                 if (!isAuthenticated()) {
@@ -192,7 +257,35 @@ public class ClientHandler implements Runnable {
                                 }
                                 break;
                             }
+                            case GET_CITIES_FROM_FLIGHTS: {
+                                try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                                    // Получаем уникальные города отправления из существующих рейсов
+                                    List<String> departureCities = session.createQuery(
+                                            "SELECT DISTINCT f.departureCity.cityName FROM Flight f ORDER BY f.departureCity.cityName",
+                                            String.class).list();
 
+                                    // Получаем уникальные города прибытия из существующих рейсов
+                                    List<String> arrivalCities = session.createQuery(
+                                            "SELECT DISTINCT f.arrivalCity.cityName FROM Flight f ORDER BY f.arrivalCity.cityName",
+                                            String.class).list();
+
+                                    // Объединяем и убираем дубликаты
+                                    Set<String> allCities = new java.util.LinkedHashSet<>();
+                                    allCities.addAll(departureCities);
+                                    allCities.addAll(arrivalCities);
+
+                                    List<CityDto> cityDtos = allCities.stream()
+                                            .map(name -> new CityDto(null, name))
+                                            .collect(Collectors.toList());
+
+                                    response.setSuccess(true);
+                                    response.setData(cityDtos);
+                                } catch (Exception e) {
+                                    response.setSuccess(false);
+                                    response.setMessage("Ошибка загрузки городов: " + e.getMessage());
+                                }
+                                break;
+                            }
                             case GET_OCCUPIED_SEATS: {
                                 // ✅ Доступно всем
                                 Integer flightId = (Integer) request.getArgs()[0];
@@ -224,6 +317,73 @@ public class ClientHandler implements Runnable {
                                 break;
                             }
 
+                            case ADVANCED_SEARCH_FLIGHTS: {
+                                String flightNumber = (String) request.getArgs()[0];
+                                String fromCity = (String) request.getArgs()[1];
+                                String toCity = (String) request.getArgs()[2];
+                                LocalDate date = (LocalDate) request.getArgs()[3];
+                                Double maxPrice = (Double) request.getArgs()[4];
+                                Boolean directOnly = (Boolean) request.getArgs()[5];
+
+                                try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                                    StringBuilder hql = new StringBuilder("from Flight f where 1=1");
+
+                                    if (flightNumber != null && !flightNumber.isEmpty()) {
+                                        hql.append(" and f.flightNumber like :flightNumber");
+                                    }
+                                    if (fromCity != null && !fromCity.isEmpty()) {
+                                        hql.append(" and f.departureCity.cityName = :fromCity");
+                                    }
+                                    if (toCity != null && !toCity.isEmpty()) {
+                                        hql.append(" and f.arrivalCity.cityName = :toCity");
+                                    }
+                                    if (date != null) {
+                                        hql.append(" and function('DATE', f.departureTime) = :date");
+                                    }
+                                    if (maxPrice != null && maxPrice < 1000) {
+                                        hql.append(" and f.basePrice <= :maxPrice");
+                                    }
+
+                                    hql.append(" order by f.departureTime");
+
+                                    var query = session.createQuery(hql.toString(), Flight.class);
+
+                                    if (flightNumber != null && !flightNumber.isEmpty()) {
+                                        query.setParameter("flightNumber", "%" + flightNumber + "%");
+                                    }
+                                    if (fromCity != null && !fromCity.isEmpty()) {
+                                        query.setParameter("fromCity", fromCity);
+                                    }
+                                    if (toCity != null && !toCity.isEmpty()) {
+                                        query.setParameter("toCity", toCity);
+                                    }
+                                    if (date != null) {
+                                        query.setParameter("date", date);
+                                    }
+                                    if (maxPrice != null && maxPrice < 1000) {
+                                        query.setParameter("maxPrice", java.math.BigDecimal.valueOf(maxPrice));
+                                    }
+
+                                    List<Flight> flights = query.list();
+
+                                    // Подсчёт занятых мест
+                                    Map<Integer, Long> bookedCounts = new HashMap<>();
+                                    for (Flight flight : flights) {
+                                        Long count = session.createQuery(
+                                                        "select count(t) from Ticket t where t.flight.id = :flightId", Long.class)
+                                                .setParameter("flightId", flight.getId())
+                                                .uniqueResult();
+                                        bookedCounts.put(flight.getId(), count != null ? count : 0L);
+                                    }
+
+                                    response.setSuccess(true);
+                                    response.setData(DtoConverter.toFlightDtoList(flights, bookedCounts));
+                                } catch (Exception e) {
+                                    response.setSuccess(false);
+                                    response.setMessage("Ошибка поиска: " + e.getMessage());
+                                }
+                                break;
+                            }
                             case GET_TICKET_HISTORY: {
                                 // ✅ Только авторизованный пользователь
                                 if (!isAuthenticated()) {
