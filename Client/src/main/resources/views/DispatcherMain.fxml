@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.controller.DispatcherMainController" styleClass="main-container" stylesheets="@../css/style.css">
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.client.controller.DispatcherMainController" styleClass="main-container" stylesheets="@/css/style.css">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
@@ -23,9 +23,9 @@
     </TableView>
 
     <HBox spacing="15" alignment="CENTER">
-        <Button text="Добавить рейс" onAction="#handleAddFlight" styleClass="button-primary"/>
-        <Button text="Редактировать рейс" styleClass="button-secondary"/>
-        <Button text="Удалить рейс" onAction="#handleDeleteFlight" styleClass="button-secondary"/>
-        <Button text="Выйти" onAction="#handleLogout" styleClass="button-secondary"/>
+        <Button onAction="#handleAddFlight" text="Добавить рейс" styleClass="button-primary"/>
+        <Button onAction="#handleEditFlight" text="Редактировать рейс" styleClass="button-secondary"/>
+        <Button onAction="#handleDeleteFlight" text="Удалить рейс" styleClass="button-secondary"/>
+        <Button onAction="#handleLogout" text="Выйти" styleClass="button-secondary"/>
     </HBox>
 </VBox>

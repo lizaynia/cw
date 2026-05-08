@@ -62,4 +62,8 @@ public class EditFlightController extends FlightFormController {
             ((Stage) flightNumberField.getScene().getWindow()).close();
         });
     }
+
+    public void setOnFlightUpdated(Runnable callback) {
+        this.onFlightSaved = callback;
+    }
 }

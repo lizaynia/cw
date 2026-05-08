@@ -1,10 +1,15 @@
 package com.common.utils;
 
-import java.util.regex.Pattern;
-
 public class ValidationUtil {
 
-    private static final Pattern PASSPORT_PATTERN = Pattern.compile("^[A-Z0-9]{7,15}$");
+    public static boolean isNotEmpty(String... fields) {
+        for (String field : fields) {
+            if (field == null || field.trim().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static boolean isValidLogin(String login) {
         return login != null && login.length() >= 3 && login.length() <= 20;
@@ -15,15 +20,6 @@ public class ValidationUtil {
     }
 
     public static boolean isValidPassport(String passport) {
-        return passport != null && PASSPORT_PATTERN.matcher(passport).matches();
-    }
-
-    public static boolean isNotEmpty(String... fields) {
-        for (String field : fields) {
-            if (field == null || field.trim().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+        return passport != null && passport.matches("^[A-Za-z0-9]{7,15}$");
     }
 }

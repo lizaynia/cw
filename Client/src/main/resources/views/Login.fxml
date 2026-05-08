@@ -6,7 +6,7 @@
 
 <VBox alignment="CENTER" spacing="0.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.client.controller.LoginController"
-      styleClass="main-container" stylesheets="@../css/style.css">
+      styleClass="main-container" stylesheets="@/css/style.css">
     
     <VBox spacing="20.0" alignment="CENTER" styleClass="panel" maxWidth="400">
         <padding>

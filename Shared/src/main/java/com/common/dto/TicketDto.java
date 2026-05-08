@@ -13,6 +13,10 @@ public class TicketDto implements Serializable {
 
     private String route;
 
+    private String flightDate;
+
+    public String getFlightDate() { return flightDate; }
+    public void setFlightDate(String flightDate) { this.flightDate = flightDate; }
     public TicketDto() {}
 
     public Integer getId() { return id; }

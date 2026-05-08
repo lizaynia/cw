@@ -12,7 +12,11 @@
     <artifactId>Shared</artifactId>
 
     <dependencies>
-        <!-- ТОЛЬКО JPA АННОТАЦИИ ДЛЯ ENTITY (БЕЗ HIBERNATE) -->
-        <!-- Аннотации jakarta.persistence не требуют рантайм зависимости -->
+
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
     </dependencies>
 </project>

@@ -30,8 +30,8 @@ public class UserProfileController extends BaseController {
     @FXML private TableColumn<TicketDto, String> histStatusColumn;
 
     @FXML private TextField loginField;
-    @FXML private Label fullNameLabel;        // ✅ Изменено с TextField на Label
-    @FXML private Label passportLabel;        // ✅ Новое поле
+    @FXML private Label fullNameLabel;        // ✅ Label, а не TextField
+    @FXML private Label passportLabel;        // ✅ Label
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
 
@@ -40,23 +40,21 @@ public class UserProfileController extends BaseController {
 
     @FXML
     public void initialize() {
-        setupTable(activeTicketsTable, activeFlightColumn, activeRouteColumn, activeSeatColumn, activeStatusColumn);
-        setupTable(historyTicketsTable, histFlightColumn, histRouteColumn, null, histStatusColumn);
+        activeFlightColumn.setCellValueFactory(new PropertyValueFactory<>("flightNumber"));
+        activeRouteColumn.setCellValueFactory(new PropertyValueFactory<>("route"));
+        activeSeatColumn.setCellValueFactory(new PropertyValueFactory<>("seatNumber"));
+        activeStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        histFlightColumn.setCellValueFactory(new PropertyValueFactory<>("flightNumber"));
+        histRouteColumn.setCellValueFactory(new PropertyValueFactory<>("route"));
+        histDateColumn.setCellValueFactory(new PropertyValueFactory<>("flightDate"));
+        histStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 
         activeTicketsTable.setItems(activeList);
         historyTicketsTable.setItems(historyList);
 
         loadUserData();
         loadTickets();
-    }
-
-    private void setupTable(TableView<TicketDto> table, TableColumn<TicketDto, String> flight,
-                            TableColumn<TicketDto, String> route, TableColumn<TicketDto, String> seat,
-                            TableColumn<TicketDto, String> status) {
-        flight.setCellValueFactory(new PropertyValueFactory<>("flightNumber"));
-        route.setCellValueFactory(new PropertyValueFactory<>("route"));
-        if (seat != null) seat.setCellValueFactory(new PropertyValueFactory<>("seatNumber"));
-        status.setCellValueFactory(new PropertyValueFactory<>("status"));
     }
 
     private void loadUserData() {

@@ -111,7 +111,7 @@ public class ClientHandler implements Runnable {
                                     this.currentUser = user;  // ✅ СОХРАНЯЕМ ПОЛЬЗОВАТЕЛЯ
                                     response.setSuccess(true);
                                     response.setMessage("Успешный вход");
-                                    response.setData(DtoConverter.toDto(user));
+                                    response.setData(DtoConverter.toUserDto(user));
                                 } else {
                                     response.setSuccess(false);
                                     response.setMessage("Неверный логин или пароль");

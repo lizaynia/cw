@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="0.0" styleClass="main-container" stylesheets="@../css/style.css"
+<VBox spacing="0.0" styleClass="main-container" stylesheets="@/css/style.css"
       xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.client.controller.AddFlightController"
       alignment="CENTER">

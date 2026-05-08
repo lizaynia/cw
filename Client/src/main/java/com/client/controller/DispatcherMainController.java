@@ -117,7 +117,7 @@ public class DispatcherMainController extends BaseController {
 
         if (showConfirmation("Удаление рейса", "Вы уверены, что хотите удалить рейс " + selected.getFlightNumber() + "?")) {
             Request request = new Request(CommandType.DELETE_FLIGHT.name(), selected.getId());
-            executeTask(request, _ -> {
+            executeTask(request, response -> {  // ← убрали _, добавили response
                 showInfo("Успех", "Рейс удален.");
                 loadFlights();
             });

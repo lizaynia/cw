@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" spacing="25" styleClass="main-container" stylesheets="@../css/style.css" 
+<VBox alignment="CENTER" spacing="25" styleClass="main-container" stylesheets="@/css/style.css"
       xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.client.controller.PaymentController"
       prefWidth="450" prefHeight="550">
