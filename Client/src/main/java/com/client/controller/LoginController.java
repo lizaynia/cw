@@ -39,12 +39,12 @@ public class LoginController extends BaseController {
         }
 
         Request request = new Request(CommandType.LOGIN.name(), login, password);
-        
+
         executeTask(request, response -> {
             UserDto user = (UserDto) response.getData();
             ServerConnection.getInstance().setCurrentUser(user);
             System.out.println("Успешный вход: " + user.getLogin() + " (" + user.getRoleName() + ")");
-            
+
             switchToMainView(user.getRoleName());
         });
     }
@@ -74,5 +74,35 @@ public class LoginController extends BaseController {
     private void handleRegister() {
         Stage stage = (Stage) loginField.getScene().getWindow();
         switchScene("/views/Register.fxml", "Aero System - Регистрация", stage);
+    }
+
+    // ========== МЕТОДЫ ДЛЯ ТЕСТИРОВАНИЯ (package-private) ==========
+
+    /**
+     * Тестовый метод для установки значений полей
+     */
+    void setLogin(String login) {
+        loginField.setText(login);
+    }
+
+    /**
+     * Тестовый метод для установки пароля
+     */
+    void setPassword(String password) {
+        passwordField.setText(password);
+    }
+
+    /**
+     * Тестовый метод для получения текста ошибки
+     */
+    String getErrorText() {
+        return errorLabel.getText();
+    }
+
+    /**
+     * Тестовый метод для вызова handleLogin
+     */
+    void doLogin() {
+        handleLogin();
     }
 }

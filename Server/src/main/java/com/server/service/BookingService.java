@@ -13,23 +13,40 @@ import org.hibernate.Transaction;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import com.server.utils.HibernateUtil;
+
 public class BookingService {
+    private final SessionFactory sessionFactory;
+    private final FlightDao flightDao;
+    private final PassengerDao passengerDao;
+    private final TicketDao ticketDao;
 
-    private final FlightDao flightDao = new FlightDao();
-    private final PassengerDao passengerDao = new PassengerDao();
-    private final TicketDao ticketDao = new TicketDao();
+    // Конструктор для тестов (инъекция зависимостей)
+    public BookingService(SessionFactory sessionFactory,
+                          FlightDao flightDao,
+                          PassengerDao passengerDao,
+                          TicketDao ticketDao) {
+        this.sessionFactory = sessionFactory;
+        this.flightDao = flightDao;
+        this.passengerDao = passengerDao;
+        this.ticketDao = ticketDao;
+    }
 
-    /**
-     * Покупка билета - АТОМАРНАЯ ТРАНЗАКЦИЯ
-     * @param passengerId ID пассажира
-     * @param flightId ID рейса
-     * @param seatNumber Номер места
-     * @return Сообщение об успешности операции
-     */
+    // Конструктор для продакшена (использует реальные DAO и SessionFactory)
+    public BookingService() {
+        this(HibernateUtil.getSessionFactory(),
+                new FlightDao(),
+                new PassengerDao(),
+                new TicketDao());
+    }
+
     public String bookTicket(Integer passengerId, Integer flightId, String seatNumber) {
         Transaction transaction = null;
-
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {  // теперь можно мокать!
             transaction = session.beginTransaction();
 
             // 1. Проверка пассажира

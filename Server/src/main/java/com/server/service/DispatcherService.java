@@ -8,16 +8,34 @@ import com.server.dao.CityDao;
 import com.server.dao.FlightDao;
 import com.server.utils.HibernateUtil;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class DispatcherService {
-    private final FlightDao flightDao = new FlightDao();
-    private final AirplaneDao airplaneDao = new AirplaneDao();
-    private final CityDao cityDao = new CityDao();
+    private final SessionFactory sessionFactory;
+    private final FlightDao flightDao;
+    private final AirplaneDao airplaneDao;
+    private final CityDao cityDao;
 
+    public DispatcherService(SessionFactory sessionFactory,
+                             FlightDao flightDao,
+                             AirplaneDao airplaneDao,
+                             CityDao cityDao) {
+        this.sessionFactory = sessionFactory;
+        this.flightDao = flightDao;
+        this.airplaneDao = airplaneDao;
+        this.cityDao = cityDao;
+    }
+
+    public DispatcherService() {
+        this(HibernateUtil.getSessionFactory(),
+                new FlightDao(),
+                new AirplaneDao(),
+                new CityDao());
+    }
     public List<Flight> getSchedule() {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return flightDao.findAll(session);

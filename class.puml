@@ -1,0 +1,192 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+
+' ========== КЛИЕНТСКАЯ ЧАСТЬ ==========
+
+abstract class BaseController {
+    + executeTask()
+    + showError()
+    + showInfo()
+    + switchScene()
+}
+
+class ServerConnection {
+    - instance : ServerConnection
+    - currentUser : UserDto
+    + getInstance()
+    + sendRequest()
+}
+
+class LoginController {
+    + handleLogin()
+    + handleRegister()
+}
+
+class RegisterController {
+    + handleRegister()
+}
+
+abstract class FlightFormController {
+    # flightNumberField
+    # datePicker
+    # airplaneComboBox
+    + validateFields()
+    + handleCancel()
+}
+
+class AddFlightController {
+    + handleSave()
+}
+
+class EditFlightController {
+    + handleSave()
+    + setFlight()
+}
+
+class ClientMainController {
+    + handleSearch()
+    + handleBuyTicket()
+    + handleShowProfile()
+    + handleLogout()
+}
+
+class DispatcherMainController {
+    + handleAddFlight()
+    + handleEditFlight()
+    + handleDeleteFlight()
+}
+
+class AdminMainController {
+    + handleChangeRole()
+    + handleBlockUser()
+}
+
+class SeatSelectionController {
+    + setFlight()
+    + handleProceedToPayment()
+}
+
+class PaymentController {
+    + handlePay()
+}
+
+class UserProfileController {
+    + handleUpdateProfile()
+    + handleChangePassword()
+}
+
+' ========== НАСЛЕДОВАНИЕ ==========
+LoginController --|> BaseController
+RegisterController --|> BaseController
+ClientMainController --|> BaseController
+DispatcherMainController --|> BaseController
+AdminMainController --|> BaseController
+SeatSelectionController --|> BaseController
+PaymentController --|> BaseController
+UserProfileController --|> BaseController
+AddFlightController --|> FlightFormController
+EditFlightController --|> FlightFormController
+FlightFormController --|> BaseController
+
+' ========== СЕРВЕРНАЯ ЧАСТЬ ==========
+
+class Server {
+    + main()
+}
+
+class ClientHandler {
+    + run()
+}
+
+interface Dao {
+    + save()
+    + findById()
+    + delete()
+}
+
+class AuthService {
+    + login()
+    + register()
+}
+
+class DispatcherService {
+    + addFlight()
+    + updateFlight()
+    + deleteFlight()
+}
+
+class AdminService {
+    + changeUserRole()
+    + toggleUserBlock()
+}
+
+class BookingService {
+    + bookTicket()
+    + getOccupiedSeats()
+}
+
+' ========== ОБЩИЕ КЛАССЫ ==========
+
+class Request {
+    - command : String
+    - args : Object[]
+}
+
+class Response {
+    - success : boolean
+    - data : Object
+}
+
+enum CommandType {
+    LOGIN
+    REGISTER
+    GET_SCHEDULE
+    BOOK_TICKET
+    ADD_FLIGHT
+    UPDATE_FLIGHT
+    DELETE_FLIGHT
+    GET_USERS
+    CHANGE_ROLE
+    BLOCK_USER
+}
+
+class UserDto {
+    - id : Integer
+    - login : String
+    - roleName : String
+}
+
+class FlightDto {
+    - flightNumber : String
+    - departureCity : String
+    - arrivalCity : String
+    - basePrice : Double
+}
+
+class TicketDto {
+    - seatNumber : String
+    - status : String
+}
+
+class ValidationUtil {
+    + isValidLogin()
+    + isValidPassword()
+    + isNotEmpty()
+}
+
+' ========== ЗАВИСИМОСТИ ==========
+ClientHandler --> AuthService
+ClientHandler --> DispatcherService
+ClientHandler --> AdminService
+ClientHandler --> BookingService
+
+ServerConnection --> Request
+ServerConnection --> Response
+BaseController --> ServerConnection
+
+ClientMainController --> FlightDto
+UserProfileController --> TicketDto
+LoginController --> UserDto
+
+@enduml

@@ -1,6 +1,13 @@
-<!DOCTYPE hibernate-configuration PUBLIC
-        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
-        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<!DOCTYPE hibernate-configuration [
+        <!ELEMENT hibernate-configuration (session-factory)*>
+        <!ELEMENT session-factory (property|mapping)*>
+        <!ELEMENT property (#PCDATA)>
+        <!ATTLIST property
+                name CDATA #REQUIRED>
+        <!ELEMENT mapping (#PCDATA)>
+        <!ATTLIST mapping
+                class CDATA #REQUIRED>
+        ]>
 <hibernate-configuration>
     <session-factory>
         <!-- Настройки подключения к MySQL -->
