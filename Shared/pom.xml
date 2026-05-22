@@ -2,6 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javafx.version>21.0.1</javafx.version>
+        <hibernate.version>6.4.4.Final</hibernate.version>
+        <junit.version>5.10.2</junit.version>
+        <mockito.version>5.14.2</mockito.version>
+        <assertj.version>3.25.3</assertj.version>
+        <h2.version>2.2.224</h2.version>
+    </properties>
     <parent>
         <artifactId>airport-system</artifactId>
         <groupId>by.bsuir.airport</groupId>
@@ -10,6 +22,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>Shared</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <!-- Jakarta Persistence (только аннотации) -->

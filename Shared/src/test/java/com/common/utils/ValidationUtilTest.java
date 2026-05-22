@@ -223,7 +223,7 @@ class ValidationUtilTest {
                 "AB,12345"                  // comma
         })
         @DisplayName("Should return false for invalid passport numbers")
-        void isValidPassport_shouldReturnFalse_whenPassportInvalid(String passport) {
+         void isValidPassport_shouldReturnFalse_whenPassportInvalid(String passport) {
             boolean result = ValidationUtil.isValidPassport(passport);
             assertThat(result).as("Passport '%s' should be invalid", passport).isFalse();
         }

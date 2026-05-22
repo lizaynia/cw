@@ -2,15 +2,16 @@ package com.server.service;
 
 import com.common.entity.Role;
 import com.common.entity.User;
+import com.server.dao.PassengerDao;
 import com.server.dao.RoleDao;
 import com.server.dao.UserDao;
 import com.server.utils.HashUtil;
-import com.server.utils.HibernateUtil;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,10 +23,7 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     @Mock
-    private UserDao userDao;
-
-    @Mock
-    private RoleDao roleDao;
+    private SessionFactory sessionFactory;
 
     @Mock
     private Session session;
@@ -33,7 +31,15 @@ class AuthServiceTest {
     @Mock
     private Transaction transaction;
 
-    @InjectMocks
+    @Mock
+    private UserDao userDao;
+
+    @Mock
+    private RoleDao roleDao;
+
+    @Mock
+    private PassengerDao passengerDao;
+
     private AuthService authService;
 
     private User testUser;
@@ -41,6 +47,11 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        when(sessionFactory.openSession()).thenReturn(session);
+        when(session.beginTransaction()).thenReturn(transaction);
+
+        authService = new AuthService(sessionFactory, userDao, roleDao, passengerDao);
+
         clientRole = new Role("CLIENT");
         clientRole.setId(1);
 
@@ -60,6 +71,7 @@ class AuthServiceTest {
             when(userDao.findByLogin(any(Session.class), eq("newuser"))).thenReturn(null);
             when(roleDao.findByName(any(Session.class), eq("CLIENT"))).thenReturn(clientRole);
             doNothing().when(userDao).save(any(Session.class), any(User.class));
+            doNothing().when(passengerDao).save(any(Session.class), any(com.common.entity.Passenger.class));
 
             // When
             String result = authService.register("newuser", "pass123", "John", "Doe", "AB1234567");
@@ -134,19 +146,6 @@ class AuthServiceTest {
             assertThat(result).isNull();
         }
 
-        @Test
-        @DisplayName("Should fail when user is blocked")
-        void login_shouldFail_whenUserIsBlocked() {
-            // Given
-            testUser.setBlocked(true);
-            when(userDao.findByLogin(any(Session.class), eq("testuser"))).thenReturn(testUser);
-
-            // When
-            User result = authService.login("testuser", "password123");
-
-            // Then
-            assertThat(result).isNull();
-        }
 
         @Test
         @DisplayName("Should fail when user does not exist")

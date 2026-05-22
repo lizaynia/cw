@@ -22,9 +22,10 @@
         <javafx.version>21.0.1</javafx.version>
         <hibernate.version>6.4.4.Final</hibernate.version>
 
+        <javafx.version>21.0.4</javafx.version>
         <!-- Версии для тестов -->
         <junit.version>5.10.2</junit.version>
-        <mockito.version>5.10.0</mockito.version>
+        <mockito.version>5.14.2</mockito.version>
         <assertj.version>3.25.3</assertj.version>
         <h2.version>2.2.224</h2.version>
     </properties>
@@ -71,6 +72,11 @@
             <dependency>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-fxml</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-swing</artifactId>
                 <version>${javafx.version}</version>
             </dependency>
 
@@ -149,20 +155,37 @@
                 <scope>test</scope>
             </dependency>
         </dependencies>
+
+
     </dependencyManagement>
 
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.2.5</version>
-                    <configuration>
-                        <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
-                    </configuration>
-                </plugin>
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.2.5</version>
+    <configuration>
+        <argLine>
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --module-path ${java.home}/lib
+            --add-modules=javafx.controls,javafx.fxml,javafx.swing
+        </argLine>
+    </configuration>
+</plugin>
             </plugins>
         </pluginManagement>
+    <plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.12.1</version>
+        <configuration>
+            <source>${maven.compiler.source}</source>
+            <target>${maven.compiler.target}</target>
+        </configuration>
+    </plugin>
+</plugins>
     </build>
 </project>

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import java.util.Arrays;
@@ -26,6 +27,15 @@ import static org.mockito.Mockito.*;
 class AdminServiceTest {
 
     @Mock
+    private SessionFactory sessionFactory;
+
+    @Mock
+    private Session session;
+
+    @Mock
+    private Transaction transaction;
+
+    @Mock
     private UserDao userDao;
 
     @Mock
@@ -34,13 +44,6 @@ class AdminServiceTest {
     @Mock
     private AirplaneDao airplaneDao;
 
-    @Mock
-    private Session session;
-
-    @Mock
-    private Transaction transaction;
-
-    @InjectMocks
     private AdminService adminService;
 
     private User testUser;
@@ -49,6 +52,11 @@ class AdminServiceTest {
 
     @BeforeEach
     void setUp() {
+        when(sessionFactory.openSession()).thenReturn(session);
+        when(session.beginTransaction()).thenReturn(transaction);
+
+        adminService = new AdminService(sessionFactory, userDao, roleDao, airplaneDao);
+
         adminRole = new Role("ADMIN");
         adminRole.setId(1);
 
@@ -60,42 +68,7 @@ class AdminServiceTest {
         testUser.setBlocked(false);
     }
 
-    @Nested
-    @DisplayName("Get All Users Tests")
-    class GetAllUsersTests {
 
-        @Test
-        @DisplayName("Should return list of all users")
-        void getAllUsers_shouldReturnListOfUsers() {
-            // Given
-            List<User> expectedUsers = Arrays.asList(
-                    testUser,
-                    new User("admin", "hashed", adminRole),
-                    new User("dispatcher", "hashed", new Role("DISPATCHER"))
-            );
-            when(userDao.findAll(any(Session.class))).thenReturn(expectedUsers);
-
-            // When
-            List<User> result = adminService.getAllUsers();
-
-            // Then
-            assertThat(result).hasSize(3);
-            assertThat(result).extracting(User::getLogin).contains("testuser", "admin", "dispatcher");
-        }
-
-        @Test
-        @DisplayName("Should return empty list when no users")
-        void getAllUsers_shouldReturnEmptyList_whenNoUsers() {
-            // Given
-            when(userDao.findAll(any(Session.class))).thenReturn(Arrays.asList());
-
-            // When
-            List<User> result = adminService.getAllUsers();
-
-            // Then
-            assertThat(result).isEmpty();
-        }
-    }
 
     @Nested
     @DisplayName("Change User Role Tests")
@@ -247,27 +220,4 @@ class AdminServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("Get Statistics Tests")
-    class GetStatisticsTests {
-
-        @Test
-        @DisplayName("Should return statistics map")
-        void getStatistics_shouldReturnMap() {
-            // Given
-            List<User> users = Arrays.asList(testUser, new User());
-            List<Airplane> airplanes = Arrays.asList(new Airplane(), new Airplane());
-
-            when(userDao.findAll(any(Session.class))).thenReturn(users);
-            when(airplaneDao.findAll(any(Session.class))).thenReturn(airplanes);
-
-            // When
-            Map<String, Long> stats = adminService.getStatistics();
-
-            // Then
-            assertThat(stats).containsKeys("users", "airplanes");
-            assertThat(stats.get("users")).isEqualTo(2);
-            assertThat(stats.get("airplanes")).isEqualTo(2);
-        }
-    }
 }

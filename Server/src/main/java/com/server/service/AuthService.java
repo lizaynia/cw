@@ -9,23 +9,37 @@ import com.server.dao.UserDao;
 import com.server.utils.HashUtil;
 import com.server.utils.HibernateUtil;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 public class AuthService {
-    private final UserDao userDao = new UserDao();
-    private final RoleDao roleDao = new RoleDao();
-    private final PassengerDao passengerDao = new PassengerDao();
+    private final SessionFactory sessionFactory;
+    private final UserDao userDao;
+    private final RoleDao roleDao;
+    private final PassengerDao passengerDao;
+
+    // Конструктор для тестов
+    public AuthService(SessionFactory sessionFactory, UserDao userDao, RoleDao roleDao, PassengerDao passengerDao) {
+        this.sessionFactory = sessionFactory;
+        this.userDao = userDao;
+        this.roleDao = roleDao;
+        this.passengerDao = passengerDao;
+    }
+
+    // Конструктор для продакшена
+    public AuthService() {
+        this(HibernateUtil.getSessionFactory(), new UserDao(), new RoleDao(), new PassengerDao());
+    }
 
     public String register(String login, String password, String firstName, String lastName, String passportNum) {
         Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
             if (userDao.findByLogin(session, login) != null) {
                 return "Ошибка: Пользователь с таким логином уже существует.";
             }
 
-            // По умолчанию регистрируем как CLIENT
             Role clientRole = roleDao.findByName(session, "CLIENT");
             if (clientRole == null) {
                 return "Ошибка: Роль CLIENT не найдена в базе данных.";
@@ -35,7 +49,6 @@ public class AuthService {
             User user = new User(login, hashedPassword, clientRole);
             userDao.save(session, user);
 
-            // Создаем запись пассажира
             Passenger passenger = new Passenger();
             passenger.setFirstName(firstName);
             passenger.setLastName(lastName);
@@ -52,13 +65,12 @@ public class AuthService {
         }
     }
 
-
     public User login(String login, String password) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             User user = userDao.findByLogin(session, login);
             String hashedPassword = HashUtil.hashPassword(password);
             if (user != null && user.getPassword().equals(hashedPassword)) {
-                if (user.isBlocked()) return null; // Или можно бросить исключение
+                if (user.isBlocked()) return null;
                 return user;
             }
             return null;
@@ -67,7 +79,7 @@ public class AuthService {
 
     public String updatePassword(Integer userId, String newPassword) {
         Transaction transaction = null;
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             User user = userDao.findById(session, userId);
             if (user == null) {

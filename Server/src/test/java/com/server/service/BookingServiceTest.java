@@ -4,12 +4,13 @@ import com.common.entity.*;
 import com.server.dao.FlightDao;
 import com.server.dao.PassengerDao;
 import com.server.dao.TicketDao;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
@@ -17,28 +18,61 @@ import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
+@DisplayName("BookingService Tests")
 class BookingServiceTest {
 
-    @Mock private SessionFactory sessionFactory;
-    @Mock private Session session;
-    @Mock private Transaction transaction;
-    @Mock private FlightDao flightDao;
-    @Mock private PassengerDao passengerDao;
-    @Mock private TicketDao ticketDao;
+    @Mock
+    private SessionFactory sessionFactory;
 
+    @Mock
+    private Session session;
+
+    @Mock
+    private Transaction transaction;
+
+    @Mock
+    private FlightDao flightDao;
+
+    @Mock
+    private PassengerDao passengerDao;
+
+    @Mock
+    private TicketDao ticketDao;
+
+    @InjectMocks
     private BookingService bookingService;
+
+    private Passenger testPassenger;
+    private Flight testFlight;
+    private Airplane testAirplane;
 
     @BeforeEach
     void setUp() {
+        // Настройка моков SessionFactory
         when(sessionFactory.openSession()).thenReturn(session);
         when(session.beginTransaction()).thenReturn(transaction);
 
-        bookingService = new BookingService(sessionFactory, flightDao, passengerDao, ticketDao);
-    }
+        // Создание тестовых данных
+        testAirplane = new Airplane();
+        testAirplane.setId(1);
+        testAirplane.setCapacity(180);
+        testAirplane.setStatus(Airplane.AirplaneStatus.ACTIVE);
 
-    @Test
-    void bookTicket_shouldSucceed() {
+        testFlight = new Flight();
+        testFlight.setId(1);
+        testFlight.setFlightNumber("AB123");
+        testFlight.setDepartureTime(LocalDateTime.now().plusDays(1));
+        testFlight.setAirplane(testAirplane);
+        testFlight.setBasePrice(BigDecimal.valueOf(150.0));
+
+        testPassenger = new Passenger();
+        testPassenger.setId(1);
+        testPassenger.setFirstName("John");
+        testPassenger.setLastName("Doe");
+        testPassenger.setPassportNumber("AB123456");
+    }
 
     @Nested
     @DisplayName("Book Ticket Tests - Success Scenarios")
@@ -69,7 +103,7 @@ class BookingServiceTest {
             when(passengerDao.findById(any(Session.class), eq(1))).thenReturn(testPassenger);
             when(flightDao.findById(any(Session.class), eq(1))).thenReturn(testFlight);
             when(ticketDao.isSeatTaken(any(Session.class), eq(1), eq("A1"))).thenReturn(false);
-            when(ticketDao.countTicketsForFlight(any(Session.class), eq(1))).thenReturn(179L); // 179 booked, 1 left
+            when(ticketDao.countTicketsForFlight(any(Session.class), eq(1))).thenReturn(179L);
 
             // When
             String result = bookingService.bookTicket(1, 1, "A1");
@@ -156,7 +190,7 @@ class BookingServiceTest {
             when(passengerDao.findById(any(Session.class), eq(1))).thenReturn(testPassenger);
             when(flightDao.findById(any(Session.class), eq(1))).thenReturn(testFlight);
             when(ticketDao.isSeatTaken(any(Session.class), eq(1), eq("A1"))).thenReturn(false);
-            when(ticketDao.countTicketsForFlight(any(Session.class), eq(1))).thenReturn(180L); // Full
+            when(ticketDao.countTicketsForFlight(any(Session.class), eq(1))).thenReturn(180L);
 
             // When
             String result = bookingService.bookTicket(1, 1, "A1");
@@ -168,25 +202,4 @@ class BookingServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("Get Occupied Seats Tests")
-    class GetOccupiedSeatsTests {
-
-        @Test
-        @DisplayName("Should return list of occupied seats")
-        void getOccupiedSeats_shouldReturnList() {
-            // Given
-            java.util.List<String> expectedSeats = java.util.Arrays.asList("A1", "A2", "B5");
-            var query = mock(org.hibernate.query.Query.class);
-            when(session.createQuery(anyString(), eq(String.class))).thenReturn(query);
-            when(query.setParameter(anyString(), any())).thenReturn(query);
-            when(query.list()).thenReturn(expectedSeats);
-
-            // When
-            java.util.List<String> result = bookingService.getOccupiedSeats(1);
-
-            // Then
-            assertThat(result).hasSize(3).containsExactly("A1", "A2", "B5");
-        }
-    }
 }

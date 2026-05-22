@@ -8,24 +8,20 @@ import com.server.dao.PassengerDao;
 import com.server.dao.TicketDao;
 import com.server.utils.HibernateUtil;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import com.server.utils.HibernateUtil;
-
 public class BookingService {
+
     private final SessionFactory sessionFactory;
     private final FlightDao flightDao;
     private final PassengerDao passengerDao;
     private final TicketDao ticketDao;
 
-    // Конструктор для тестов (инъекция зависимостей)
+    // Конструктор для тестов (с инъекцией зависимостей)
     public BookingService(SessionFactory sessionFactory,
                           FlightDao flightDao,
                           PassengerDao passengerDao,
@@ -36,7 +32,7 @@ public class BookingService {
         this.ticketDao = ticketDao;
     }
 
-    // Конструктор для продакшена (использует реальные DAO и SessionFactory)
+    // Конструктор для продакшена
     public BookingService() {
         this(HibernateUtil.getSessionFactory(),
                 new FlightDao(),
@@ -46,7 +42,7 @@ public class BookingService {
 
     public String bookTicket(Integer passengerId, Integer flightId, String seatNumber) {
         Transaction transaction = null;
-        try (Session session = sessionFactory.openSession()) {  // теперь можно мокать!
+        try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
 
             // 1. Проверка пассажира
@@ -66,7 +62,7 @@ public class BookingService {
                 return "Ошибка: Рейс уже вылетел.";
             }
 
-            // 4. Проверка - место не занято (в той же транзакции)
+            // 4. Проверка - место не занято
             if (ticketDao.isSeatTaken(session, flightId, seatNumber)) {
                 return "Ошибка: Место " + seatNumber + " уже занято.";
             }
@@ -89,14 +85,12 @@ public class BookingService {
 
             ticketDao.save(session, ticket);
 
-            // 7. COMMIT транзакции - все изменения сохраняются атомарно
             transaction.commit();
-
             return "Успех: Билет успешно куплен! Место: " + ticket.getSeatNumber();
 
         } catch (Exception e) {
             if (transaction != null) {
-                transaction.rollback(); // ROLLBACK при любой ошибке
+                transaction.rollback();
             }
             e.printStackTrace();
             return "Ошибка сервера: " + e.getMessage();
@@ -104,12 +98,19 @@ public class BookingService {
     }
 
     public List<String> getOccupiedSeats(Integer flightId) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+        try (Session session = sessionFactory.openSession()) {
             return session.createQuery(
                             "select t.seatNumber from Ticket t where t.flight.id = :flightId and t.seatNumber is not null",
                             String.class)
                     .setParameter("flightId", flightId)
                     .list();
         }
+    }
+    // Добавьте этот конструктор в BookingService
+    public BookingService(FlightDao flightDao, PassengerDao passengerDao, TicketDao ticketDao) {
+        this.sessionFactory = null;
+        this.flightDao = flightDao;
+        this.passengerDao = passengerDao;
+        this.ticketDao = ticketDao;
     }
 }
